@@ -16,15 +16,6 @@ def main():
 #imagen aleatoria de internet
  st.image("https://picsum.photos/800")
 ###########################################
-#poner un video
- with open ("video.mp4","rb") as video_file:
-   
-   st.video(video_file.read(),start_time=10)
-###########################################
-with open ("audio.mp3","rb") as audio_file:
-   
-   st.audio(audio_file.read())
-
-
+#poner un vide
 if __name__=="__main__": 
  main()

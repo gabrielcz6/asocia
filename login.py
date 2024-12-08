@@ -1,9 +1,9 @@
 import streamlit as st
-
+from db.MongoConnection import MongoConnection
 
 def loginsistema():
- 
-
+ print("desde init")
+    
 # Usuarios y contraseñas almacenados en un diccionario
  users = {
     "admin": "admin123",
@@ -17,11 +17,15 @@ def loginsistema():
 
  def login(username, password):
     """Función para verificar credenciales."""
-    if username in users and users[username] == password:
-        st.session_state.authenticated = True
-        st.success(f"Bienvenido, {username}!")
+    db = MongoConnection()
+    db.connect()
+    if db.login(user=username, password=password) != None:
+      st.session_state.authenticated = True
+      st.success(f"Bienvenido, {username}!")
+      st.rerun()
     else:
-        st.error("Credenciales incorrectas.")
+      st.error("Credenciales incorrectas.")
+
 
  def logout():
     """Cerrar sesión."""

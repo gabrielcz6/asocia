@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import info_unfv, login
+import info_unfv, login,miscursos
 
 # Definimos las diferentes páginas de la app
 def home_page():
@@ -17,8 +17,8 @@ def multi_app():
     with st.sidebar:
         if st.session_state["user_role"] == "decano":
             app = option_menu(
-                menu_title='Pondering ',
-                options=['Home', 'Account', 'Trending', 'Your Posts', 'Buscar Rubricas', 'Cerrar Sesion'],
+                menu_title='Decano',
+                options=['Homedecano', 'Account', 'Trending', 'Your Posts', 'Buscar Rubricas', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=1,
@@ -31,8 +31,8 @@ def multi_app():
             )
         elif st.session_state["user_role"] == "profesor":
             app = option_menu(
-                menu_title='Pondering ',
-                options=['Home', 'Your Posts', 'mis cursos', 'Crear Rubrica', 'Cerrar Sesion'],
+                menu_title='Profesor',
+                options=['Mis Cursos', 'Crear Rubrica', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=1,
@@ -45,8 +45,8 @@ def multi_app():
             )
         elif st.session_state["user_role"] == "secretaria":  # Secretaria
             app = option_menu(
-                menu_title='Pondering ',
-                options=['Home', 'Account', 'Asignar curso a Profesor', 'Cerrar Sesion'],
+                menu_title='Secretaria',
+                options=['Homesecretaria', 'Account', 'Asignar curso a Profesor', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=1,
@@ -61,16 +61,20 @@ def multi_app():
     # Aquí se definen las páginas según la opción seleccionada
     if app == "Home":
         st.write("Página principal")
-    elif app == "Account":
-        st.write("Cuenta")
+    elif app == "Homedecano":
+        st.write("Homedecano")
+    elif app == "Homesecretaria":
+        st.write("Homesecretaria")
+    elif app == "Homeprofesor":
+        st.write("Homeprofesor")        
     elif app == "Trending":
         st.write("Tendencias")
     elif app == 'Your Posts':
         st.write("Tus Publicaciones")
-    elif app == 'about':
-        st.write("Acerca de")
-    elif app == 'Buy me a coffee':
-        st.write("¡Compra un café!")
+    elif app == 'Mis Cursos':
+        miscursos.miscursos()
+    elif app == 'Cerrar Sesion':
+        logout_button()
 
     # Botón para cerrar sesión
     if st.button("Cerrar sesión"):

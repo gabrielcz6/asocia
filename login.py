@@ -7,6 +7,9 @@ def login_page():
     # Inputs para login (usuario y contraseña)
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
+
+    #ENDPOINT 1 recuperar dni del usuario y contraseña que esta logeando
+    #st.session_state["id"]
     
     if st.button("Iniciar sesión"):
         # Aquí validamos las credenciales, esto puede ser con una base de datos o lógica predefinida

@@ -1,26 +1,19 @@
 import streamlit as st
 
+@st.dialog("Cast your vote")
+def vote(item):
+    st.write(f"Why is {item} your favorite?")
+    reason = st.text_input("Because...")
+    st.text("gaaaaaaaaaa")
+    if st.button("Submit"):
+        st.session_state.vote = {"item": item, "reason": reason}
+        st.rerun()
 
-def main():
- """
- st.title("SISTEMA VISAS AMERICANA")
- st.header("SISTEMA VISAS AMERICANA")
- st.subheader("SISTEMA VISAS AMERICANA")
- st.text("SISTEMA VISAS AMERICANA")
- nombre="Ivan"
- st.text(f"hola {nombre}, esto es un texto")
- st.markdown("# ESTO ES UN MARKDOWN")
- st.success("Exito")
- st.warning("esto es una advertencia")
- st.info("esto es informacion")
- st.error("esto es un error")
- st.exception("esto es una excepcion")
- """
- st.title("CURSO STREAMLIT")
- st.write("Texto normal")
- st.write("## Texto normal")
- st.write(1+2)
- 
-
-if __name__=="__main__": 
- main()
+if "vote" not in st.session_state:
+    st.write("Vote for your favorite")
+    if st.button("A"):
+        vote("A")
+    if st.button("B"):
+        vote("B")
+else:
+    f"You voted for {st.session_state.vote['item']} because {st.session_state.vote['reason']}"

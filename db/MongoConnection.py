@@ -2,8 +2,8 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 import os
 import sys
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

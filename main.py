@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import info_unfv, login,miscursos
+import info_unfv, login,miscursos,rubrica,mostrarrubricadecano
 
 # Definimos las diferentes páginas de la app
 def home_page():
@@ -18,7 +18,7 @@ def multi_app():
         if st.session_state["user_role"] == "decano":
             app = option_menu(
                 menu_title='Decano',
-                options=['Homedecano', 'Account', 'Trending', 'Your Posts', 'Buscar Rubricas', 'Cerrar Sesion'],
+                options=['Buscar Rubricas', 'Account', 'Trending', 'Your Posts', 'Buscar Rubricas', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=1,
@@ -35,7 +35,7 @@ def multi_app():
                 options=['Mis Cursos', 'Crear Rubrica', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
-                default_index=1,
+                default_index=0,
                 styles={
                     "container": {"padding": "5!important", "background-color": 'black'},
                     "icon": {"color": "white", "font-size": "23px"},
@@ -67,10 +67,10 @@ def multi_app():
         st.write("Homesecretaria")
     elif app == "Homeprofesor":
         st.write("Homeprofesor")        
-    elif app == "Trending":
-        st.write("Tendencias")
-    elif app == 'Your Posts':
-        st.write("Tus Publicaciones")
+    elif app == "Buscar Rubricas":
+        mostrarrubricadecano.mostrarrubricadecano()
+    elif app == 'Crear Rubrica':
+        rubrica.rubrica()
     elif app == 'Mis Cursos':
         miscursos.miscursos()
     elif app == 'Cerrar Sesion':

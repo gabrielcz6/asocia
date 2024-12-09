@@ -1,6 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-import info_unfv, login,miscursos,rubrica,mostrarrubricadecano
+import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso
 
 # Definimos las diferentes páginas de la app
 def home_page():
@@ -46,10 +46,10 @@ def multi_app():
         elif st.session_state["user_role"] == "secretaria":  # Secretaria
             app = option_menu(
                 menu_title='Secretaria',
-                options=['Homesecretaria', 'Account', 'Asignar curso a Profesor', 'Cerrar Sesion'],
+                options=['Crear Curso', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
-                default_index=1,
+                default_index=0,
                 styles={
                     "container": {"padding": "5!important", "background-color": 'black'},
                     "icon": {"color": "white", "font-size": "23px"},
@@ -73,6 +73,8 @@ def multi_app():
         rubrica.rubrica()
     elif app == 'Mis Cursos':
         miscursos.miscursos()
+    elif app == 'Crear Curso':
+        crearcurso.crearcurso()    
     elif app == 'Cerrar Sesion':
         logout_button()
 

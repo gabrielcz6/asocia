@@ -14,23 +14,25 @@ def login_page():
     #st.session_state["id"]
     
     if st.button("Iniciar sesión"):
-        
-
         # Aquí validamos las credenciales, esto puede ser con una base de datos o lógica predefinida
-        if username == "decano" and password == "decano123":
+        backend = MongoConnection()
+        backend.connect()
+        user = backend.login(user=username, password=password)
+        print(user)
+        if user != None:
             st.session_state["logged_in"] = True
-            st.session_state["user_role"] = "decano"  # Asignamos el rol como decano
+            st.session_state["user_role"] = user["rol"]  # Asignamos el rol como decano
             st.session_state["current_page"] = "home"
             st.rerun()
-        elif username == "profesor" and password == "profesor123":
-            st.session_state["logged_in"] = True
-            st.session_state["user_role"] = "profesor"  # Asignamos el rol como profesor
-            st.session_state["current_page"] = "home"
-            st.rerun()
-        elif username == "secretaria" and password == "secretaria123":
-            st.session_state["logged_in"] = True
-            st.session_state["user_role"] = "secretaria"  # Asignamos el rol como secretaria
-            st.session_state["current_page"] = "home"
-            st.rerun()
+        # elif username == "profesor" and password == "profesor123":
+        #     st.session_state["logged_in"] = True
+        #     st.session_state["user_role"] = "profesor"  # Asignamos el rol como profesor
+        #     st.session_state["current_page"] = "home"
+        #     st.rerun()
+        # elif username == "secretaria" and password == "secretaria123":
+        #     st.session_state["logged_in"] = True
+        #     st.session_state["user_role"] = "secretaria"  # Asignamos el rol como secretaria
+        #     st.session_state["current_page"] = "home"
+        #     st.rerun()
         else:
             st.error("Credenciales incorrectas")

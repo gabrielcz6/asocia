@@ -1,7 +1,9 @@
 import streamlit as st
 from db.MongoConnection import MongoConnection
 
+
 def login_page():
+
     st.write("### Iniciar sesión")
     
     # Inputs para login (usuario y contraseña)
@@ -12,6 +14,8 @@ def login_page():
     #st.session_state["id"]
     
     if st.button("Iniciar sesión"):
+        
+
         # Aquí validamos las credenciales, esto puede ser con una base de datos o lógica predefinida
         if username == "decano" and password == "decano123":
             st.session_state["logged_in"] = True

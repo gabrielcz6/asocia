@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso
+from utils.roles import Roles
 
 # Definimos las diferentes páginas de la app
 def home_page():
@@ -15,7 +16,8 @@ def logout_button():
 def multi_app():
     # Aquí es donde se muestra el menú y las aplicaciones cuando el usuario está autenticado
     with st.sidebar:
-        if st.session_state["user_role"] == "decano":
+        if st.session_state["user_role"] == Roles.DECANO.value:
+            # backend.find_courses_by_user()
             app = option_menu(
                 menu_title='Decano',
                 options=['Buscar Rubricas', 'Cerrar Sesion'],
@@ -29,9 +31,9 @@ def multi_app():
                     "nav-link-selected": {"background-color": "#02ab21"},
                 }
             )
-        elif st.session_state["user_role"] == "profesor":
+        elif st.session_state["user_role"] == Roles.PROFESOR.value:
             app = option_menu(
-                menu_title='Profesor',
+                menu_title=st.session_state["current_user"]["fullname"],
                 options=['Mis Cursos', 'Crear Rubrica', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
@@ -43,7 +45,7 @@ def multi_app():
                     "nav-link-selected": {"background-color": "#02ab21"},
                 }
             )
-        elif st.session_state["user_role"] == "secretaria":  # Secretaria
+        elif st.session_state["user_role"] == Roles.SECRETARIA.value:  # Secretaria
             app = option_menu(
                 menu_title='Secretaria',
                 options=['Crear Curso', 'Cerrar Sesion'],

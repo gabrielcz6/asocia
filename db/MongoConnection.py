@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from bson import ObjectId
 import os
 import sys
 #from dotenv import load_dotenv
@@ -106,131 +107,6 @@ class MongoConnection:
             self.client.close()
             print("Conexión cerrada.")
 
-
-    def export_to_csv(self, collection_name, output_file, max_id=49000) -> None:
-        """
-        Exporta datos de MongoDB a un archivo CSV excluyendo 'updatedAt'.
-
-        :param collection_name: Nombre de la colección
-        :param output_file: Nombre del archivo de salida
-        :param max_id: El valor máximo de 'id' a filtrar
-        """
-        try:
-            # Verificar si hay conexión
-            if self.db is None:
-                raise ConnectionFailure("No hay conexión a la base de datos.")
-
-            # Obtener la colección
-            collection = self.db[collection_name]
-
-            # Definir la consulta para filtrar los documentos
-            query = {"id": {"$lte": max_id}}
-
-            # Consultar los documentos de la colección
-            cursor = collection.find(query)
-
-            # Procesar los datos excluyendo 'updatedAt'
-            processed_data = []
-            for entry in cursor:
-                excel_data = entry.get('data_excel', {})
-                result_data = entry.get('result', {})
-
-                combined_data = {
-                    "NOMBRE": excel_data.get('nombre', ''),
-                    "DISTRITO": excel_data.get('distrito', ''),
-                    "TIP. DOCUMENTO": excel_data.get('tip. documento', ''),
-                    "NRO. DOCUMENTO": excel_data.get('nro. documento', ''),
-                    "NUMBER": result_data.get('number', ''),
-                    "NAME": result_data.get('name', ''),
-                    "MOTHERS_LASTNAME": result_data.get('mothersLastname', ''),
-                    "FATHERS_LASTNAME": result_data.get('fathersLastname', ''),
-                    "FULLNAME": result_data.get('fullName', ''),
-                    "VERIFICATION_CODE": result_data.get('verificationCode', ''),
-                    "GENDER": result_data.get('gender', ''),
-                    "BIRTHDATE": result_data.get('birthDate', ''),
-                    "MARITAL_STATUS": result_data.get('maritalStatus', ''),
-                    "LOCATION": result_data.get('location', ''),
-                    "LOCATION_RENIEC": result_data.get('locationReniec', ''),
-                    "REGION": result_data.get('region', ''),
-                    "PROVINCE": result_data.get('province', ''),
-                    "DISTRICT": result_data.get('district', ''),
-                    "ADDRESS": result_data.get('address', '')
-                }
-                processed_data.append(combined_data)
-
-            # Crear un DataFrame y exportar a CSV
-            df = pd.DataFrame(processed_data)
-            df.to_csv(output_file, index=False)
-            print(f"Exportación completada con éxito. Archivo guardado en {output_file}")
-        
-        except ConnectionFailure as e:
-            print(f"Error de conexión: {e}")
-        except Exception as e:
-            print(f"Se produjo un error durante la exportación: {e}")
-
-    def export_to_excel(self, collection_name, output_file, from_id: int, max_id=49000) -> None:
-        """
-        Exporta datos de MongoDB a un archivo Excel excluyendo 'updatedAt'.
-        
-        :param collection_name: Nombre de la colección
-        :param output_file: Nombre del archivo de salida
-        :param max_id: El valor máximo de 'id' a filtrar
-        """
-        try:
-            # Verificar si hay conexión
-            if self.db is None:
-                raise Exception("No hay conexión a la base de datos.")
-
-            # Obtener la colección
-            collection = self.db[collection_name]
-
-            # Definir la consulta para filtrar los documentos
-            # query = {"id": {"$lte": max_id}}
-            query = {"id": {"$gte": from_id, "$lte": max_id}}
-
-            # Consultar los documentos de la colección
-            cursor = collection.find(query)
-
-            # Procesar los datos excluyendo 'updatedAt' y asegurando el orden correcto
-            processed_data = []
-            for entry in cursor:
-                excel_data = entry.get('data_excel', {})
-                result_data = entry.get('result', {})
-
-                combined_data = {
-                    "POSICION": entry.get('id', 0) + 1,
-                    "NOMBRE": excel_data.get('nombre', ''),
-                    "DISTRITO": excel_data.get('distrito', ''),
-                    "TIP. DOCUMENTO": excel_data.get('tip. documento', ''),
-                    "NRO. DOCUMENTO": excel_data.get('nro. documento', ''),
-                    "NUMBER": result_data.get('number', ''),
-                    "NAME": result_data.get('name', ''),
-                    "MOTHERS_LASTNAME": result_data.get('mothersLastname', ''),
-                    "FATHERS_LASTNAME": result_data.get('fathersLastname', ''),
-                    "FULLNAME": result_data.get('fullName', ''),
-                    "VERIFICATION_CODE": result_data.get('verificationCode', ''),
-                    "GENDER": result_data.get('gender', ''),
-                    "BIRTHDATE": result_data.get('birthDate', ''),
-                    "MARITAL_STATUS": result_data.get('maritalStatus', ''),
-                    "LOCATION": result_data.get('location', ''),
-                    "LOCATION_RENIEC": result_data.get('locationReniec', ''),
-                    "REGION": result_data.get('region', ''),
-                    "PROVINCE": result_data.get('province', ''),
-                    "DISTRICT": result_data.get('district', ''),
-                    "ADDRESS": result_data.get('address', '')
-                }
-                processed_data.append(combined_data)
-
-            # Crear un DataFrame y exportar a Excel
-            df = pd.DataFrame(processed_data)
-            # df.to_excel(output_file, index=False)
-            with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
-                df.to_excel(writer, index=False)
-            print(f"Exportación completada con éxito. Archivo guardado en {output_file}")
-        
-        except Exception as e:
-            print(f"Se produjo un error durante la exportación: {e}")
-
     def login(self, user, password):
         """
         Autentica un usuario verificando su nombre de usuario y contraseña.
@@ -250,10 +126,11 @@ class MongoConnection:
             # Verificar contraseña
             if user["password"] == password:
                 print(f"{VERDE}Loggin success{GRIS}\n")
-                return {
-                    "usuario": user["usuario"],
-                    "rol": user["rol"]
-                }
+                return user
+                # return {
+                #     "usuario": user["usuario"],
+                #     "rol": user["rol"]
+                # }
             else:
                 # Contraseña incorrecta
                 print(f"{VERDE}Loggin failed: password{GRIS}\n")
@@ -262,35 +139,35 @@ class MongoConnection:
             # Usuario no encontrado
             print(f"{VERDE}Loggin failed: user{GRIS}\n")
             return None
+        
+    def find_courses_by_user(self, user_id: str):
+        """
+        Find all courses associated with a specific user, including the year from the user_course collection.
+        
+        :param user_id: The ObjectId of the user as a string.
+        :return: A list of dictionaries, each containing course details and the year.
+        """
+        user_course_collection = self.db["user_course"]
+        course_collection = self.db["courses"]  # Assuming you have a "courses" collection for course details.
+
+        # Find all course IDs and years associated with the user
+        user_courses = list(user_course_collection.find({"user_id": user_id}, {"course_id": 1, "year": 1, "_id": 0}))
+
+        # Extract course IDs and map them to their respective years
+        course_year_mapping = {uc["course_id"]: uc["year"] for uc in user_courses}
+        course_ids = list(course_year_mapping.keys())
+
+        # Fetch the detailed course information from the courses collection
+        courses = list(course_collection.find({"_id": {"$in": course_ids}}))
+
+        # Add the year to each course result
+        for course in courses:
+            course["year"] = course_year_mapping[course["_id"]]
+
+        return courses
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    # Crear una instancia de la clase
-    # mongo_conn = MongoConnection(uri="mongodb://localhost:27017/", db_name="mi_base_de_datos")
-    
-    # # Conectar a la base de datos
-    # mongo_conn.connect()
-
-    # # Insertar un documento
-    # documento = {"nombre": "Alice", "edad": 30, "ciudad": "New York"}
-    # mongo_conn.insert_document("usuarios", documento)
-
-    # # Consultar documentos
-    # resultados = mongo_conn.find_documents("usuarios", {"edad": {"$gt": 25}})
-    # for doc in resultados:
-    #     print(doc)
-
-    # # Cerrar la conexión
-    # mongo_conn.close_connection()
-
-
-    # mongo_connection = MongoConnection('mongodb://localhost:27017/', 'LDS-Massive')
-    # mongo_connection.connect()
-
-    # # Luego puedes exportar los datos
-    # mongo_connection.export_to_csv('DNI', 'output.csv')
-    mongo_connection = MongoConnection('mongodb://localhost:27017/', 'LDS-Massive')
-    mongo_connection.connect()
-
-    # Luego puedes exportar los datos directamente a un archivo Excel
-    mongo_connection.export_to_excel('DNI', 'DNI-297869-428000-PROCESADOS.xlsx', from_id=297869, max_id=428001)
+    mongo = MongoConnection('mongodb://localhost:27017/', 'asocia')
+    mongo.connect()
+    print(mongo.find_courses_by_user(ObjectId("67550e8e278f66cc36fe9342")))

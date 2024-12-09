@@ -1,20 +1,20 @@
 import streamlit as st
 import pandas as pd
+from db.MongoConnection import MongoConnection
 
 
 def miscursos():
     # Ejemplo de datos: lista de diccionarios
-    cursos = [
-        {"nombre_curso": "Matemáticas 101", "semestre": "1er Semestre", "codigo_curso": "MAT101"},
-        {"nombre_curso": "Física 202", "semestre": "2do Semestre", "codigo_curso": "FIS202"},
-        {"nombre_curso": "Química 303", "semestre": "3er Semestre", "codigo_curso": "QUI303"},
-        {"nombre_curso": "Programación 404", "semestre": "4to Semestre", "codigo_curso": "PRO404"},
-    ]
+    
+    backend: MongoConnection = st.session_state.backend
+    data = backend.find_courses_by_user(st.session_state["current_user"]["_id"])
+    df = pd.DataFrame(data, dtype="object")
+    df.rename(columns={'_id': 'Código', 'name': 'Asignatura', 'semester': 'Semestre', 'year': 'Año'}, inplace=True)
     
     # Convertir la lista de diccionarios en un DataFrame
-    df_cursos = pd.DataFrame(cursos)
+    # df_cursos = pd.DataFrame(cursos)
     
     # Renderizar la tabla en Streamlit
     st.title("Lista de Cursos")
-    st.dataframe(df_cursos)
+    st.dataframe(df, hide_index=True)
     

@@ -1,13 +1,28 @@
 import streamlit as st
+from db.MongoConnection import MongoConnection
+import pandas as pd
 
 def rubrica():
     # Datos de ejemplo: Cursos y alumnos asociados
-    cursos = {
-        "Matemáticas": ["Juan Pérez", "Ana Gómez", "Carlos López"],
-        "Ciencias": ["María Rodríguez", "Luis Torres", "Pablo Sánchez"],
-        "Literatura": ["Laura Fernández", "Ricardo Pérez", "Claudia Díaz"]
-    }
+    backend: MongoConnection = st.session_state.backend
+    data = backend.find_courses_by_user(user_id=st.session_state["current_user"]["_id"], include_students=True)
+    print("printando data del be", data)
+    # df = pd.DataFrame(data, dtype="object")
+    # df.rename(columns={'_id': 'Código', 'name': 'Asignatura', 'semester': 'Semestre', 'year': 'Año'}, inplace=True)
     
+    # cursos = {
+    #     "Matemáticas": ["Juan Pérez", "Ana Gómez", "Carlos López"],
+    #     "Ciencias": ["María Rodríguez", "Luis Torres", "Pablo Sánchez"],
+    #     "Literatura": ["Laura Fernández", "Ricardo Pérez", "Claudia Díaz"]
+    # }
+
+    cursos = {}
+    for course in data:
+        course_name = course["name"]
+        students_names = [student["name"] for student in course["students"]]
+        cursos[course_name] = students_names
+    
+    print("printeando luego de acomodar", cursos)
     # Simulación de una base de datos con las rúbricas almacenadas
     # (Este diccionario simula los datos que podrían venir de una BD)
     bd_simulada = {

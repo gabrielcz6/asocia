@@ -140,29 +140,34 @@ class MongoConnection:
             print(f"{VERDE}Loggin failed: user{GRIS}\n")
             return None
         
-    def find_courses_by_user(self, user_id: str):
+    def find_courses_by_user(self, user_id: str, include_students: bool = False):
         """
         Find all courses associated with a specific user, including the year from the user_course collection.
+        Optionally include students associated with each course.
         
         :param user_id: The ObjectId of the user as a string.
-        :return: A list of dictionaries, each containing course details and the year.
+        :param include_students: Boolean indicating whether to include student information.
+        :return: A list of dictionaries, each containing course details, the year, and optionally the students.
         """
         user_course_collection = self.db["user_course"]
         course_collection = self.db["courses"]  # Assuming you have a "courses" collection for course details.
 
         # Find all course IDs and years associated with the user
-        user_courses = list(user_course_collection.find({"user_id": user_id}, {"course_id": 1, "year": 1, "_id": 0}))
+        user_courses = list(user_course_collection.find({"user_id": user_id}, {"course_id": 1, "year": 1, "students": 1, "_id": 0}))
 
-        # Extract course IDs and map them to their respective years
-        course_year_mapping = {uc["course_id"]: uc["year"] for uc in user_courses}
+        # Extract course IDs and map them to their respective years (and optionally students)
+        course_year_mapping = {uc["course_id"]: {"year": uc["year"], "students": uc.get("students", [])} for uc in user_courses}
         course_ids = list(course_year_mapping.keys())
 
         # Fetch the detailed course information from the courses collection
         courses = list(course_collection.find({"_id": {"$in": course_ids}}))
 
-        # Add the year to each course result
+        # Add the year (and optionally students) to each course result
         for course in courses:
-            course["year"] = course_year_mapping[course["_id"]]
+            course_details = course_year_mapping[course["_id"]]
+            course["year"] = course_details["year"]
+            if include_students:
+                course["students"] = course_details["students"]
 
         return courses
 
@@ -170,4 +175,4 @@ class MongoConnection:
 if __name__ == "__main__":
     mongo = MongoConnection('mongodb://localhost:27017/', 'asocia')
     mongo.connect()
-    print(mongo.find_courses_by_user(ObjectId("67550e8e278f66cc36fe9342")))
+    print(mongo.find_courses_by_user(ObjectId("67550e8e278f66cc36fe9342"), include_students=True))

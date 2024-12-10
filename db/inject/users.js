@@ -11,14 +11,14 @@ db.users.insertMany([
       "usuario": "profesor1",
       "password": "profesor123",
       "rol": "profesor",
-      "fullname": "Gómez Martínez, Ana María"
+      "fullname": "Espinoza Silverio, Edgar Franklin"      
     },
     {
       "_id": ObjectId("67550e8e278f66cc36fe9343"),
       "usuario": "profesor2",
       "password": "profesor456",
       "rol": "profesor",
-      "fullname": "Espinoza Silverio, Edgar Franklin"
+      "fullname": "Gómez Martínez, Ana María"
     },
     {
       "_id": ObjectId("67550e8e278f66cc36fe9344"),

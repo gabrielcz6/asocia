@@ -170,6 +170,37 @@ class MongoConnection:
                 course["students"] = course_details["students"]
 
         return courses
+    
+
+    def save_rubric(self, student, course, rubric, course_id):
+        """
+        Guarda una rúbrica en la colección `rubrics`.
+        
+        :param student: Diccionario con los datos del estudiante seleccionado.
+        :param course: Diccionario con los datos del curso seleccionado.
+        :param rubric: String o estructura que representa la rúbrica actual.
+        :return: El resultado de la operación de inserción.
+        """
+        try: 
+            rubrics_collection = self.db["rubrics"]  # Conectar a la colección `rubrics`
+            
+            # Crear el documento a guardar
+            rubric_document = {
+                "student": student,
+                "course": {
+                    "id": course_id,
+                    "name": course["name"],
+                    "year": course["year"],
+                    "semester": course["semester"]
+                },
+                "rubric": rubric
+            }
+
+            # Guardar el documento en la colección
+            result = rubrics_collection.insert_one(rubric_document)
+            return result.inserted_id 
+        except:
+            return False
 
 # Ejemplo de uso
 if __name__ == "__main__":

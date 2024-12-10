@@ -62,7 +62,6 @@ class MongoConnection:
 
     def find_documents(self, collection_name, query={}):
         """Consulta documentos en la colección especificada."""
-        print("debug")
         if self.db == None:
             raise ConnectionFailure("No está conectado a la base de datos.")
         collection = self.db[collection_name]
@@ -172,7 +171,7 @@ class MongoConnection:
         return courses
     
 
-    def save_rubric(self, student, course, rubric, course_id):
+    def save_rubric(self, student, course, rubric, course_id, teacher_id):
         """
         Guarda una rúbrica en la colección `rubrics`.
         
@@ -186,6 +185,7 @@ class MongoConnection:
             
             # Crear el documento a guardar
             rubric_document = {
+                "teacher_id" : teacher_id,
                 "student": student,
                 "course": {
                     "id": course_id,

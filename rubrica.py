@@ -6,7 +6,7 @@ def rubrica():
     # Datos de ejemplo: Cursos y alumnos asociados
     backend: MongoConnection = st.session_state.backend
     data = backend.find_courses_by_user(user_id=st.session_state["current_user"]["_id"], include_students=True)
-
+    rubricas_del_profe = backend.find_documents("rubrics", {"teacher_id" : st.session_state["current_user"]["_id"]})
     cursos = {
     course["_id"]: {
         "name": course["name"],
@@ -106,9 +106,10 @@ def rubrica():
         # Botón para guardar la nueva rúbrica
         if st.button("Guardar Rúbrica"):
             if rubrica.strip():  # Verificamos que no esté vacía
-                if backend.save_rubric(student=alumno_seleccionado,course=curso_seleccionado,rubric=rubrica, course_id=curso_seleccionado_id):
+                if backend.save_rubric(student=alumno_seleccionado,course=curso_seleccionado,rubric=rubrica, course_id=curso_seleccionado_id, teacher_id=st.session_state["current_user"]["_id"]):
                 # bd_simulada[alumno_seleccionado["name"]] = rubrica
                     st.success(f"Rúbrica guardada para {alumno_seleccionado["name"]}")
+                    rubricas_del_profe = backend.find_documents("rubrics", {"teacher_id" : st.session_state["current_user"]["_id"]})
                 else:
                     st.error(f"Rúbrica no guardada para {alumno_seleccionado["name"]}")
             else:
@@ -119,3 +120,4 @@ def rubrica():
         st.write(f"Rúbrica para {alumno_seleccionado}, {curso_seleccionado}:")
         st.write(bd_simulada[alumno_seleccionado["name"]])
 
+    st.json(rubricas_del_profe)

@@ -14,22 +14,6 @@ def mostrarrubricadecano():
        'Facultad de Ingeniería Electrónica e Informática': ['Ingeniería de Telecomunicaciones', 'Ingeniería Informática', 'Ingeniería Mecánica'],
        'Facultad de Medicina': ['Medicina', 'Enfermería', 'Odontología']
    }
-   cursos = {
-       'Biología': ['Biología 101', 'Biología 102'],
-       'Física': ['Física 101', 'Física 102'],
-       'Ingeniería Informática' : ['Cálculo 1', 'Estructuras 1'],
-       'Ingeniería de Telecomunicaciones': ['Anatomía 1', 'Fisiología 1']
-   }
-   rubricas = {
-       'Biología 101': [
-           {'codigo_curso': 'BIO101', 'nombre_curso': 'Biología 101', 'docente': 'Dr. Pérez', 'periodo': '2024-1', 'codigo_alumno': 'A001', 'nombre_alumno': 'Juan Pérez', 'rubrica': 'Informe sobre células: Evaluación Final'},
-           {'codigo_curso': 'BIO101', 'nombre_curso': 'Biología 101', 'docente': 'Dr. Pérez', 'periodo': '2024-1', 'codigo_alumno': 'A002', 'nombre_alumno': 'Ana López', 'rubrica': 'Informe sobre células: Evaluación Final'}
-       ],
-       'Física 101': [
-           {'codigo_curso': 'FIS101', 'nombre_curso': 'Física 101', 'docente': 'Dr. García', 'periodo': '2024-1', 'codigo_alumno': 'A003', 'nombre_alumno': 'Carlos González', 'rubrica': 'Examen Final: Física Teórica'},
-           {'codigo_curso': 'FIS101', 'nombre_curso': 'Física 101', 'docente': 'Dr. García', 'periodo': '2024-1', 'codigo_alumno': 'A004', 'nombre_alumno': 'Laura Martínez', 'rubrica': 'Examen Final: Física Teórica'}
-       ]
-   }
    
    # Interfaz de Streamlit
    st.title("Sistema de Rúbricas - Decano")

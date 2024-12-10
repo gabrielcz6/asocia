@@ -1,22 +1,24 @@
 import streamlit as st
 import pandas as pd
+from db.MongoConnection import MongoConnection
 
 
 
 def mostrarrubricadecano():
-
 # Datos simulados
-   facultades = ['Facultad de Ciencias', 'Facultad de Ingeniería', 'Facultad de Medicina']
+   backend: MongoConnection = st.session_state.backend
+
+   facultades = ['Facultad de Ciencias', 'Facultad de Ingeniería Electrónica e Informática', 'Facultad de Medicina']
    carreras = {
        'Facultad de Ciencias': ['Biología', 'Física', 'Química'],
-       'Facultad de Ingeniería': ['Ingeniería Civil', 'Ingeniería de Sistemas', 'Ingeniería Mecánica'],
+       'Facultad de Ingeniería Electrónica e Informática': ['Ingeniería de Telecomunicaciones', 'Ingeniería Informática', 'Ingeniería Mecánica'],
        'Facultad de Medicina': ['Medicina', 'Enfermería', 'Odontología']
    }
    cursos = {
        'Biología': ['Biología 101', 'Biología 102'],
        'Física': ['Física 101', 'Física 102'],
-       'Ingeniería Civil': ['Cálculo 1', 'Estructuras 1'],
-       'Medicina': ['Anatomía 1', 'Fisiología 1']
+       'Ingeniería Informática' : ['Cálculo 1', 'Estructuras 1'],
+       'Ingeniería de Telecomunicaciones': ['Anatomía 1', 'Fisiología 1']
    }
    rubricas = {
        'Biología 101': [
@@ -39,14 +41,43 @@ def mostrarrubricadecano():
    carrera = st.selectbox("Selecciona la Carrera", carreras[facultad])
    
    # Selección de Curso (dependiendo de la Carrera seleccionada)
-   curso = st.selectbox("Selecciona el Curso", cursos[carrera])
+#    curso = st.selectbox("Selecciona el Curso", cursos[carrera])
    
    # Mostrar los datos de las rúbricas del curso seleccionado
-   if curso in rubricas:
+   data = backend.find_documents(collection_name='courses', query= {"faculty" : facultad, "school" : carrera})
+
+   course_names = [course["name"] for course in data]
+
+   # Mostrar el selectbox con los nombres de los cursos
+   curso = st.selectbox("Selecciona el Curso", course_names)
+
+   rubrics = []
+   print(curso)
+
+   if curso != None:
+       rubrics = backend.find_documents(collection_name='rubrics', query= {"course.name" : curso})
+
+   print(rubrics)
+       
+
+   if rubrics:
        st.subheader(f"Rúbricas del curso: {curso}")
    
        # Convertir los datos de las rúbricas en un DataFrame para visualización
-       rubricas_df = pd.DataFrame(rubricas[curso])
+
+       rubricas_procesadas = [
+        {
+            'codigo_curso': rubric['course']['id'],
+            'nombre_curso': rubric['course']['name'],
+            'docente': str(rubric['teacher_name']),  # Convertimos teacher_id a string
+            'periodo': f"{rubric['course']['year']} - Semestre {rubric['course']['semester']}",
+            'codigo_alumno': rubric['student']['id'],
+            'nombre_alumno': rubric['student']['name'],
+            'rubrica' : rubric['rubric']
+        }
+        for rubric in rubrics
+    ]
+       rubricas_df = pd.DataFrame(rubricas_procesadas)
    
        # Mostrar la tabla sin la columna de rúbricas, solo con los datos clave
        st.dataframe(rubricas_df[['codigo_curso', 'nombre_curso', 'docente', 'periodo', 'codigo_alumno', 'nombre_alumno']])

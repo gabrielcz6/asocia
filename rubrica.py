@@ -106,9 +106,10 @@ def rubrica():
         # Botón para guardar la nueva rúbrica
         if st.button("Guardar Rúbrica"):
             if rubrica.strip():  # Verificamos que no esté vacía
-                if backend.save_rubric(student=alumno_seleccionado,course=curso_seleccionado,rubric=rubrica, course_id=curso_seleccionado_id, teacher_id=st.session_state["current_user"]["_id"]):
+                if backend.save_rubric(student=alumno_seleccionado,course=curso_seleccionado,rubric=rubrica, course_id=curso_seleccionado_id, teacher_id=st.session_state["current_user"]["_id"], teacher_name = st.session_state["current_user"]["fullname"]):
                 # bd_simulada[alumno_seleccionado["name"]] = rubrica
                     st.success(f"Rúbrica guardada para {alumno_seleccionado["name"]}")
+                    print(st.session_state["current_user"])
                     rubricas_del_profe = backend.find_documents("rubrics", {"teacher_id" : st.session_state["current_user"]["_id"]})
                 else:
                     st.error(f"Rúbrica no guardada para {alumno_seleccionado["name"]}")

@@ -171,7 +171,7 @@ class MongoConnection:
         return courses
     
 
-    def save_rubric(self, student, course, rubric, course_id, teacher_id):
+    def save_rubric(self, student, course, rubric, course_id, teacher_id, teacher_name):
         """
         Guarda una rúbrica en la colección `rubrics`.
         
@@ -186,6 +186,7 @@ class MongoConnection:
             # Crear el documento a guardar
             rubric_document = {
                 "teacher_id" : teacher_id,
+                "teacher_name" : teacher_name,
                 "student": student,
                 "course": {
                     "id": course_id,

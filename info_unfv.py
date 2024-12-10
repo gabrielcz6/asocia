@@ -3,8 +3,13 @@ import streamlit as st
 
 
 def infounfv():
+  
   # Configuración de la página
   st.set_page_config(page_title="UNFV", page_icon="🎓", layout="wide")
+
+  # Sección de noticias
+  st.markdown("<h3 style='text-align: center;'>Sistema de Rubricas UNFV</h3>", unsafe_allow_html=True)
+
   
   # Barra superior
   st.markdown("""
@@ -24,26 +29,17 @@ def infounfv():
   """, unsafe_allow_html=True)
   
   # Encabezado principal
-  col1, col2 = st.columns([1, 3])
+ # col1 = st.columns(1)
   
-  with col1:
-      st.image("https://www.unfv.edu.pe/images/logo.png", width=150)  # Imagen del logo
-  
-  with col2:
-      st.markdown("""
-      <h1 style="color: #FF6600; font-size: 32px;">Universidad Nacional Federico Villarreal</h1>
-      """, unsafe_allow_html=True)
-  
-  # Menú de navegación
-  
+  #with col1:
+  st.markdown("<div style='text-align: center;'><img src='https://www.unfv.edu.pe/images/logo_unfv.jpg' width='450'></div>", unsafe_allow_html=True)
 
+  st.markdown("<h3 style='text-align: center;'>Acceso Personal</h3>", unsafe_allow_html=True)
 
   
-  # Imagen principal
-  st.image("https://www.unfv.edu.pe/images/unfv_front.png", caption="UNFV", use_column_width=True)
+
   
-  # Sección de noticias
-  st.markdown("### Seleccionar")
+  
   col1, col2, col3 = st.columns(3)
   
     # Columna 1

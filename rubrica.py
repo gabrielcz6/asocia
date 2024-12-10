@@ -120,4 +120,6 @@ def rubrica():
         st.write(f"Rúbrica para {alumno_seleccionado}, {curso_seleccionado}:")
         st.write(bd_simulada[alumno_seleccionado["name"]])
 
-    st.json(rubricas_del_profe)
+    if len(rubricas_del_profe) > 0: 
+        st.title(f"Histórico de Rúbricas")
+        st.json(rubricas_del_profe)

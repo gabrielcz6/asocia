@@ -114,7 +114,7 @@ def rubrica():
                 # bd_simulada[alumno_seleccionado["name"]] = rubrica
                     st.success(f"Rúbrica guardada para {alumno_seleccionado["name"]}")
                     print(st.session_state["current_user"])
-                    rubricas_del_profe = backend.find_documents("rubrics", {"teacher_id" : st.session_state["current_user"]["_id"]})
+                    rubricas_del_profe = backend.find_documents("evaluations", {"usuarioEvaluadorID" : st.session_state["current_user"]["_id"]})
                 else:
                     st.error(f"Rúbrica no guardada para {alumno_seleccionado["name"]}")
             else:
@@ -127,13 +127,11 @@ def rubrica():
 
     if len(rubricas_del_profe) > 0: 
         st.title(f"Histórico de Rúbricas")
-        df = pd.DataFrame(rubricas_del_profe)
+        # df = pd.DataFrame(rubricas_del_profe)
         #df['student'] = df['student'].apply(json.loads)
-        df['student'] = df['student'].apply(lambda x: x['name'])
-        df['course'] = df['course'].apply(lambda x: x['name'])
-
-
-        st.dataframe(df[['teacher_name', 'student','course','rubric']])
+        # df['student'] = df['student'].apply(lambda x: x['name'])
+        # df['course'] = df['course'].apply(lambda x: x['name'])
+        st.write(rubricas_del_profe)
 
 
 def crear_rubrica_v2():
@@ -183,7 +181,7 @@ def crear_rubrica_v2():
     # Control de la rúbrica (nombre y descripción)
     st.subheader("Información de la Rúbrica")
     nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
-    descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100)
+    descripcion_rubrica = st.text_area("Descripción de la Rúbrica (opcional)", height=100)
 
     # Control del número de criterios
     st.subheader("Criterios")
@@ -205,15 +203,14 @@ def crear_rubrica_v2():
     criterios = []
     for i in range(int(st.session_state.num_criterios)):
         with st.expander(f"Criterio {i + 1}", expanded=True):
-            nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", key=f"nombre_criterio_{i}")
-            descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", key=f"descripcion_criterio_{i}")
+            nombre_criterio = st.text_input(f"Nombre del Criterio", key=f"nombre_criterio_{i}")
 
             # Control del número de puntajes
             if f"num_puntajes_{i}" not in st.session_state:
                 st.session_state[f"num_puntajes_{i}"] = 1
 
             num_puntajes = st.number_input(
-                f"Número de Puntajes para el Criterio {i + 1}",
+                f"Número de Puntajes para el Criterio",
                 min_value=1,
                 max_value=10,
                 step=1,
@@ -232,17 +229,29 @@ def crear_rubrica_v2():
 
                 with col1:
                     puntaje_descripcion = st.text_area(
-                        f"Descripción del Puntaje {j + 1}",
+                        f"Etiqueta o descripción del Puntaje {j + 1}",
                         key=f"puntaje_descripcion_{i}_{j}",
-                        height=68
+                        height=68  # Puedes ajustar la altura inicial según necesites
                     )
 
                 with col2:
-                    puntaje_valor = st.number_input(
-                        f"Valor {j + 1}",
-                        min_value=1,
-                        key=f"puntaje_valor_{i}_{j}"
-                    )
+                    puntaje_valor = st.text_input(
+                    f"Valor del Puntaje {j + 1}",
+                    key=f"puntaje_valor_{i}_{j}",
+                    placeholder="Numérico"
+                )
+                
+                if puntaje_valor:
+                    try:
+                        puntaje_valor_float = float(puntaje_valor)  # Convertir a flotante
+                        if puntaje_valor_float < 0.0:
+                            st.error("El valor debe ser mayor o igual a 0.0.")
+                            puntaje_valor_float = None  # Invalidar el valor
+                    except ValueError:
+                        st.error("Por favor, ingresa un número válido.")
+                        puntaje_valor_float = None
+                else:
+                    puntaje_valor_float = None
 
                 puntajes.append({
                     "valor": puntaje_valor,
@@ -252,13 +261,12 @@ def crear_rubrica_v2():
             # Añadir el criterio a la lista de criterios
             criterios.append({
                 "nombre": nombre_criterio,
-                "descripcion": descripcion_criterio,
                 "puntajes": puntajes
             })
 
     # Botón de guardar (simulando el envío de un formulario)
     if st.button("Guardar Rúbrica"):
-        if nombre_rubrica and descripcion_rubrica and all(c["nombre"] for c in criterios):
+        if nombre_rubrica and all(c["nombre"] for c in criterios):
             # Crear el documento para la base de datos
             nueva_rubrica = {
                 "nombre": nombre_rubrica,
@@ -339,7 +347,6 @@ def mostrar_criterios(rubrica):
     for criterio in rubrica["criterios"]:
         data_criterios.append({
             "Nombre Criterio": criterio["nombre"],
-            "Descripción Criterio": criterio["descripcion"],
             "Puntajes": ", ".join([f"{p['valor']} ({p['descripcion']})" for p in criterio["puntajes"]])
         })
 

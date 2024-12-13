@@ -1,6 +1,8 @@
 import streamlit as st
 from db.MongoConnection import MongoConnection
 import pandas as pd
+import json
+
 
 def rubrica():
     # Datos de ejemplo: Cursos y alumnos asociados
@@ -72,7 +74,7 @@ def rubrica():
 
     
     # Paso 3: Verificar si hay una rúbrica ya guardada para este alumno en la "BD"
-    if alumno_seleccionado["name"] in bd_simulada:
+    if alumno_seleccionado["name"] in opciones_alumnos:
         rubrica_actual = bd_simulada[alumno_seleccionado]
         # Inicializamos un estado de edición
         if 'editarrubrica' not in st.session_state:
@@ -123,4 +125,10 @@ def rubrica():
 
     if len(rubricas_del_profe) > 0: 
         st.title(f"Histórico de Rúbricas")
-        st.json(rubricas_del_profe)
+        df = pd.DataFrame(rubricas_del_profe)
+        #df['student'] = df['student'].apply(json.loads)
+        df['student'] = df['student'].apply(lambda x: x['name'])
+        df['course'] = df['course'].apply(lambda x: x['name'])
+
+
+        st.dataframe(df[['teacher_name', 'student','course','rubric']])

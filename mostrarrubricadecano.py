@@ -68,7 +68,8 @@ def mostrarrubricadecano():
    
        # Al hacer clic en el botón de lupa, mostrar los detalles de la rúbrica
        for index, row in rubricas_df.iterrows():
-           if st.button(f"🔍 Ver rúbrica de {row['nombre_alumno']}", key=row['codigo_alumno']):
+           try:
+            if st.button(f"🔍 Ver rúbrica de {row['nombre_alumno']}", key=row['codigo_alumno']):
                st.subheader(f"Detalles de la Rúbrica para {row['nombre_alumno']}")
                st.write(f"**Código del curso**: {row['codigo_curso']}")
                st.write(f"**Nombre del curso**: {row['nombre_curso']}")
@@ -77,6 +78,8 @@ def mostrarrubricadecano():
                st.write(f"**Código del alumno**: {row['codigo_alumno']}")
                st.write(f"**Nombre del alumno**: {row['nombre_alumno']}")
                st.write(f"**Rúbrica**: {row['rubrica']}")
+           except:
+              pass    
    else:
        st.write("No hay rúbricas disponibles para este curso.")
    

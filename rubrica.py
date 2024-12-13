@@ -135,64 +135,149 @@ def rubrica():
 
         st.dataframe(df[['teacher_name', 'student','course','rubric']])
 
-def crear_rubrica_v2():
-    st.title("Crear / Editar Rúbrica V2")
 
-    # Inicializar la conexión a MongoDB
+def crear_rubrica_v2():
+    st.title("Crear Rúbrica V2")
+
+    # Inicializar la conexión a MongoDB (Simulación aquí)
     backend: MongoConnection = st.session_state.backend
 
-    # Cargar datos de la rúbrica si estamos en modo edición
-    rubrica_a_editar = st.session_state.get("rubrica_a_editar", None)
-    edit_mode = st.session_state.get("edit_mode", False)
-
-    # Inicializar campos con datos existentes si es edición
-    nombre_rubrica = st.text_input("Nombre de la Rúbrica", value=rubrica_a_editar["nombre"] if rubrica_a_editar else "")
-    descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100, value=rubrica_a_editar["descripcion"] if rubrica_a_editar else "")
-
-    # Control del número de criterios
-    criterios_iniciales = rubrica_a_editar["criterios"] if rubrica_a_editar else []
-    num_criterios = len(criterios_iniciales) if criterios_iniciales else 1
-
-    criterios = []
-    for i in range(num_criterios):
-        criterio_existente = criterios_iniciales[i] if i < len(criterios_iniciales) else {"nombre": "", "descripcion": "", "puntajes": []}
-
-        with st.expander(f"Criterio {i + 1}"):
-            nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", value=criterio_existente["nombre"], key=f"nombre_criterio_{i}")
-            descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", value=criterio_existente["descripcion"], key=f"descripcion_criterio_{i}")
-
-            puntajes = []
-            for j, puntaje in enumerate(criterio_existente.get("puntajes", [])):
-                puntaje_valor = st.number_input(f"Valor del Puntaje {j + 1}", min_value=1, value=puntaje["valor"], key=f"puntaje_valor_{i}_{j}")
-                puntaje_descripcion = st.text_area(f"Descripción del Puntaje {j + 1}", value=puntaje["descripcion"], key=f"puntaje_descripcion_{i}_{j}")
-                puntajes.append({"valor": puntaje_valor, "descripcion": puntaje_descripcion})
-
-            criterios.append({"nombre": nombre_criterio, "descripcion": descripcion_criterio, "puntajes": puntajes})
-
-    # Botón para guardar
-    if st.button("Guardar Rúbrica"):
-        nueva_rubrica = {
-            "nombre": nombre_rubrica,
-            "descripcion": descripcion_rubrica,
-            "criterios": criterios,
-            "teacher_id": st.session_state["current_user"]["_id"],
-            "teacher_name": st.session_state["current_user"]["fullname"]
+    # Agregar estilos CSS personalizados
+    st.markdown(
+        """
+        <style>
+        /* Estilo para inputs numéricos */
+        div[data-testid="stNumberInputContainer"] {
+            width: 120px !important;
+            font-size: 14px;
         }
 
-        if edit_mode:
-            backend.db["rubrics"].update_one({"_id": rubrica_a_editar["_id"]}, {"$set": nueva_rubrica})
-            st.success(f"Rúbrica '{nombre_rubrica}' actualizada exitosamente.")
-        else:
-            backend.save_document("rubrics", nueva_rubrica)
-            st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
+        /* Estilo para inputs de texto */
+        div[data-testid="stTextInput"] input {
+            font-size: 14px;
+        }
 
-        # Limpiar el estado y volver a la lista de rúbricas
-        st.session_state.pop("rubrica_a_editar", None)
-        st.session_state.pop("edit_mode", None)
-        st.session_state.current_page = "Mis Rubricas"
+        /* Estilo para text areas */
+        div[data-testid="stTextArea"] textarea {
+            font-size: 14px;
+        }
+
+        /* Estilo para subencabezados */
+        h2 {
+            color: #1f77b4;
+        }
+
+        /* Reducir el margen de los expanders */
+        .streamlit-expander {
+            margin-bottom: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Inicializar el estado para número de criterios
+    if "num_criterios" not in st.session_state:
+        st.session_state.num_criterios = 1
+
+    # Control de la rúbrica (nombre y descripción)
+    st.subheader("Información de la Rúbrica")
+    nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
+    descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100)
+
+    # Control del número de criterios
+    st.subheader("Criterios")
+    num_criterios = st.number_input(
+        "Número de Criterios",
+        min_value=1,
+        max_value=10,
+        step=1,
+        value=st.session_state.num_criterios,
+        key="num_criterios_input"
+    )
+
+    # Si el valor cambia, actualiza el estado
+    if num_criterios != st.session_state.num_criterios:
+        st.session_state.num_criterios = num_criterios
         st.rerun()
 
+    # Campos para criterios
+    criterios = []
+    for i in range(int(st.session_state.num_criterios)):
+        with st.expander(f"Criterio {i + 1}", expanded=True):
+            nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", key=f"nombre_criterio_{i}")
+            descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", key=f"descripcion_criterio_{i}")
 
+            # Control del número de puntajes
+            if f"num_puntajes_{i}" not in st.session_state:
+                st.session_state[f"num_puntajes_{i}"] = 1
+
+            num_puntajes = st.number_input(
+                f"Número de Puntajes para el Criterio {i + 1}",
+                min_value=1,
+                max_value=10,
+                step=1,
+                value=st.session_state[f"num_puntajes_{i}"],
+                key=f"num_puntajes_input_{i}"
+            )
+
+            if num_puntajes != st.session_state[f"num_puntajes_{i}"]:
+                st.session_state[f"num_puntajes_{i}"] = num_puntajes
+                st.rerun()
+
+            # Campos para puntajes
+            puntajes = []
+            for j in range(int(st.session_state[f"num_puntajes_{i}"])):
+                col1, col2 = st.columns([4, 1])
+
+                with col1:
+                    puntaje_descripcion = st.text_area(
+                        f"Descripción del Puntaje {j + 1}",
+                        key=f"puntaje_descripcion_{i}_{j}",
+                        height=68
+                    )
+
+                with col2:
+                    puntaje_valor = st.number_input(
+                        f"Valor {j + 1}",
+                        min_value=1,
+                        key=f"puntaje_valor_{i}_{j}"
+                    )
+
+                puntajes.append({
+                    "valor": puntaje_valor,
+                    "descripcion": puntaje_descripcion
+                })
+
+            # Añadir el criterio a la lista de criterios
+            criterios.append({
+                "nombre": nombre_criterio,
+                "descripcion": descripcion_criterio,
+                "puntajes": puntajes
+            })
+
+    # Botón de guardar (simulando el envío de un formulario)
+    if st.button("Guardar Rúbrica"):
+        if nombre_rubrica and descripcion_rubrica and all(c["nombre"] for c in criterios):
+            # Crear el documento para la base de datos
+            nueva_rubrica = {
+                "nombre": nombre_rubrica,
+                "descripcion": descripcion_rubrica,
+                "criterios": criterios,
+                "teacher_id": st.session_state["current_user"]["_id"],
+                "teacher_name": st.session_state["current_user"]["fullname"]
+            }
+
+            # Guardar en la base de datos
+            result = backend.save_document("rubrics", nueva_rubrica)
+
+            if result:
+                st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
+            else:
+                st.error("Error al guardar la rúbrica.")
+        else:
+            st.warning("Por favor, completa todos los campos obligatorios.")
+            
 
 def listar_rubricas():
     st.title("Listado de Rúbricas")
@@ -206,6 +291,19 @@ def listar_rubricas():
     if not rubricas:
         st.warning("No hay rúbricas disponibles.")
         return
+
+    # Transformar los datos en una lista de diccionarios para la tabla
+    # data = []
+    # for rubrica in rubricas:
+    #     # Extraer solo los parámetros que deseas mostrar
+    #     for criterio in rubrica["criterios"]:
+    #         data.append({
+    #             "Nombre Rúbrica": rubrica["nombre"],
+    #             "Descripción Rúbrica": rubrica["descripcion"],
+    #             "Nombre Criterio": criterio["nombre"],
+    #             "Descripción Criterio": criterio["descripcion"],
+    #             "Teacher": rubrica["teacher_name"]
+    #         })
 
     data = []
     for rubrica in rubricas:
@@ -226,13 +324,7 @@ def listar_rubricas():
         with st.expander(f"Detalles de '{rubrica['nombre']}'"):
             st.write(f"**Descripción:** {rubrica['descripcion']}")
             st.write(f"**Teacher:** {rubrica['teacher_name']}")
-                        # Botón para editar la rúbrica
-            if st.button(f"Editar Rúbrica '{rubrica['nombre']}'", key=f"editar_{rubrica['_id']}"):
-                # Guardar los datos de la rúbrica en st.session_state
-                st.session_state.rubrica_a_editar = rubrica
-                st.session_state.edit_mode = True
-                st.session_state.current_page = "Crear Rubrica V2"
-                st.rerun()  # Recargar para ir al formulario de edición
+
             # Botón para ver los criterios
             if st.button(f"Ver Criterios de '{rubrica['nombre']}'", key=f"ver_criterios_{rubrica['_id']}"):
                 mostrar_criterios(rubrica)

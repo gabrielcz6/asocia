@@ -2,6 +2,8 @@ import streamlit as st
 from db.MongoConnection import MongoConnection
 import pandas as pd
 import json
+from bson.objectid import ObjectId
+
 
 
 def rubrica():
@@ -133,58 +135,126 @@ def rubrica():
 
         st.dataframe(df[['teacher_name', 'student','course','rubric']])
 
-
-
-
 def crear_rubrica_v2():
-    st.title("Crear Rúbrica V2")
+    st.title("Crear / Editar Rúbrica V2")
 
     # Inicializar la conexión a MongoDB
     backend: MongoConnection = st.session_state.backend
 
-    # Crear el formulario
-    with st.form("crear_rubrica_v2_form", clear_on_submit=True):
-        nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
-        descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100)
-        
-        # Campos para criterios
-        st.subheader("Criterios")
-        criterios = []
-        
-        # Crear campos para múltiples criterios
-        num_criterios = st.number_input("Número de Criterios", min_value=1, max_value=10, step=1, value=1)
+    # Cargar datos de la rúbrica si estamos en modo edición
+    rubrica_a_editar = st.session_state.get("rubrica_a_editar", None)
+    edit_mode = st.session_state.get("edit_mode", False)
 
-        for i in range(int(num_criterios)):
-            with st.expander(f"Criterio {i + 1}"):
-                nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", key=f"nombre_criterio_{i}")
-                descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", key=f"descripcion_criterio_{i}")
-                puntaje_maximo = st.number_input(f"Puntaje Máximo del Criterio {i + 1}", min_value=1, step=1, key=f"puntaje_maximo_{i}")
-                criterios.append({
-                    "nombre": nombre_criterio,
-                    "descripcion": descripcion_criterio,
-                    "puntaje_maximo": puntaje_maximo
-                })
+    # Inicializar campos con datos existentes si es edición
+    nombre_rubrica = st.text_input("Nombre de la Rúbrica", value=rubrica_a_editar["nombre"] if rubrica_a_editar else "")
+    descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100, value=rubrica_a_editar["descripcion"] if rubrica_a_editar else "")
 
-        # Botón para enviar el formulario
-        submit_button = st.form_submit_button("Guardar Rúbrica")
+    # Control del número de criterios
+    criterios_iniciales = rubrica_a_editar["criterios"] if rubrica_a_editar else []
+    num_criterios = len(criterios_iniciales) if criterios_iniciales else 1
 
-        if submit_button:
-            if nombre_rubrica and descripcion_rubrica and all(c['nombre'] for c in criterios):
-                # Guardar la rúbrica en MongoDB
-                nueva_rubrica = {
-                    "nombre": nombre_rubrica,
-                    "descripcion": descripcion_rubrica,
-                    "criterios": criterios,
-                    "teacher_id": st.session_state["current_user"]["_id"],
-                    "teacher_name": st.session_state["current_user"]["fullname"]
-                }
+    criterios = []
+    for i in range(num_criterios):
+        criterio_existente = criterios_iniciales[i] if i < len(criterios_iniciales) else {"nombre": "", "descripcion": "", "puntajes": []}
 
-                # Guardar en la base de datos
-                result = backend.save_document("rubrics", nueva_rubrica)
+        with st.expander(f"Criterio {i + 1}"):
+            nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", value=criterio_existente["nombre"], key=f"nombre_criterio_{i}")
+            descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", value=criterio_existente["descripcion"], key=f"descripcion_criterio_{i}")
+
+            puntajes = []
+            for j, puntaje in enumerate(criterio_existente.get("puntajes", [])):
+                puntaje_valor = st.number_input(f"Valor del Puntaje {j + 1}", min_value=1, value=puntaje["valor"], key=f"puntaje_valor_{i}_{j}")
+                puntaje_descripcion = st.text_area(f"Descripción del Puntaje {j + 1}", value=puntaje["descripcion"], key=f"puntaje_descripcion_{i}_{j}")
+                puntajes.append({"valor": puntaje_valor, "descripcion": puntaje_descripcion})
+
+            criterios.append({"nombre": nombre_criterio, "descripcion": descripcion_criterio, "puntajes": puntajes})
+
+    # Botón para guardar
+    if st.button("Guardar Rúbrica"):
+        nueva_rubrica = {
+            "nombre": nombre_rubrica,
+            "descripcion": descripcion_rubrica,
+            "criterios": criterios,
+            "teacher_id": st.session_state["current_user"]["_id"],
+            "teacher_name": st.session_state["current_user"]["fullname"]
+        }
+
+        if edit_mode:
+            backend.db["rubrics"].update_one({"_id": rubrica_a_editar["_id"]}, {"$set": nueva_rubrica})
+            st.success(f"Rúbrica '{nombre_rubrica}' actualizada exitosamente.")
+        else:
+            backend.save_document("rubrics", nueva_rubrica)
+            st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
+
+        # Limpiar el estado y volver a la lista de rúbricas
+        st.session_state.pop("rubrica_a_editar", None)
+        st.session_state.pop("edit_mode", None)
+        st.session_state.current_page = "Mis Rubricas"
+        st.rerun()
+
+
+
+def listar_rubricas():
+    st.title("Listado de Rúbricas")
+
+    # Inicializar la conexión a MongoDB
+    backend: MongoConnection = st.session_state.backend
+
+    # Consultar todas las rúbricas de la colección
+    rubricas = backend.find_documents("rubrics")
+
+    if not rubricas:
+        st.warning("No hay rúbricas disponibles.")
+        return
+
+    data = []
+    for rubrica in rubricas:
+        # Agregar solo un registro por rúbrica
+        data.append({
+            "ID": str(rubrica["_id"]),
+            "Nombre Rúbrica": rubrica["nombre"],
+            "Descripción Rúbrica": rubrica["descripcion"],
+            "Teacher": rubrica["teacher_name"]
+        })
+    # Crear un DataFrame de pandas
+    df = pd.DataFrame(data)
+
+    # Mostrar la tabla en Streamlit
+    st.dataframe(df)
+
+    for rubrica in rubricas:
+        with st.expander(f"Detalles de '{rubrica['nombre']}'"):
+            st.write(f"**Descripción:** {rubrica['descripcion']}")
+            st.write(f"**Teacher:** {rubrica['teacher_name']}")
+                        # Botón para editar la rúbrica
+            if st.button(f"Editar Rúbrica '{rubrica['nombre']}'", key=f"editar_{rubrica['_id']}"):
+                # Guardar los datos de la rúbrica en st.session_state
+                st.session_state.rubrica_a_editar = rubrica
+                st.session_state.edit_mode = True
+                st.session_state.current_page = "Crear Rubrica V2"
+                st.rerun()  # Recargar para ir al formulario de edición
+            # Botón para ver los criterios
+            if st.button(f"Ver Criterios de '{rubrica['nombre']}'", key=f"ver_criterios_{rubrica['_id']}"):
+                mostrar_criterios(rubrica)
                 
-                if result:
-                    st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
-                else:
-                    st.error("Error al guardar la rúbrica.")
-            else:
-                st.warning("Por favor, completa todos los campos obligatorios.")
+    # Opcional: Mostrar tabla estática
+    # st.table(df)
+def mostrar_criterios(rubrica):
+    st.subheader(f"Criterios de la Rúbrica '{rubrica['nombre']}'")
+
+    # Crear una lista de diccionarios con los criterios
+    data_criterios = []
+    for criterio in rubrica["criterios"]:
+        data_criterios.append({
+            "Nombre Criterio": criterio["nombre"],
+            "Descripción Criterio": criterio["descripcion"],
+            "Puntajes": ", ".join([f"{p['valor']} ({p['descripcion']})" for p in criterio["puntajes"]])
+        })
+
+    # Crear un DataFrame para los criterios
+    df_criterios = pd.DataFrame(data_criterios)
+
+    # Mostrar la tabla con los criterios
+    st.dataframe(df_criterios)
+# Llamar a la función para listar rúbricas
+

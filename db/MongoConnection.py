@@ -202,6 +202,21 @@ class MongoConnection:
             return result.inserted_id 
         except:
             return False
+        
+
+    def save_document(self, collection_name, document):
+        """Guarda un documento en la colección especificada."""
+        try:
+            if self.db is None:
+                raise ConnectionFailure(f"{ROJO}No está conectado a la base de datos.{GRIS}")
+            collection = self.db[collection_name]
+            result = collection.insert_one(document)
+            print(f"{AZUL}Documento insertado con ID: {VERDE}{result.inserted_id}{GRIS}")
+            return result.inserted_id  # Retorna el ID del documento insertado
+        except Exception as e:
+            print(f"{ROJO}Error al insertar el documento: {e}{GRIS}")
+            return None
+
 
 # Ejemplo de uso
 if __name__ == "__main__":

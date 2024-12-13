@@ -37,7 +37,7 @@ def multi_app():
         elif st.session_state["user_role"] == Roles.PROFESOR.value:
             app = option_menu(
                 menu_title=st.session_state["current_user"]["fullname"],
-                options=['Mis Cursos', 'Crear Rubrica', 'Cerrar Sesion'],
+                options=['Mis Cursos', 'Crear Rubrica', 'Crear Rubrica V2', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -76,6 +76,8 @@ def multi_app():
         mostrarrubricadecano.mostrarrubricadecano()
     elif app == 'Crear Rubrica':
         rubrica.rubrica()
+    elif app == 'Crear Rubrica V2':
+         app = rubrica.crear_rubrica_v2()
     elif app == 'Mis Cursos':
         miscursos.miscursos()
     elif app == 'Crear Curso':

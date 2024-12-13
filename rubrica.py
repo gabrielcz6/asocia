@@ -132,3 +132,59 @@ def rubrica():
 
 
         st.dataframe(df[['teacher_name', 'student','course','rubric']])
+
+
+
+
+def crear_rubrica_v2():
+    st.title("Crear Rúbrica V2")
+
+    # Inicializar la conexión a MongoDB
+    backend: MongoConnection = st.session_state.backend
+
+    # Crear el formulario
+    with st.form("crear_rubrica_v2_form", clear_on_submit=True):
+        nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
+        descripcion_rubrica = st.text_area("Descripción de la Rúbrica", height=100)
+        
+        # Campos para criterios
+        st.subheader("Criterios")
+        criterios = []
+        
+        # Crear campos para múltiples criterios
+        num_criterios = st.number_input("Número de Criterios", min_value=1, max_value=10, step=1, value=1)
+
+        for i in range(int(num_criterios)):
+            with st.expander(f"Criterio {i + 1}"):
+                nombre_criterio = st.text_input(f"Nombre del Criterio {i + 1}", key=f"nombre_criterio_{i}")
+                descripcion_criterio = st.text_area(f"Descripción del Criterio {i + 1}", key=f"descripcion_criterio_{i}")
+                puntaje_maximo = st.number_input(f"Puntaje Máximo del Criterio {i + 1}", min_value=1, step=1, key=f"puntaje_maximo_{i}")
+                criterios.append({
+                    "nombre": nombre_criterio,
+                    "descripcion": descripcion_criterio,
+                    "puntaje_maximo": puntaje_maximo
+                })
+
+        # Botón para enviar el formulario
+        submit_button = st.form_submit_button("Guardar Rúbrica")
+
+        if submit_button:
+            if nombre_rubrica and descripcion_rubrica and all(c['nombre'] for c in criterios):
+                # Guardar la rúbrica en MongoDB
+                nueva_rubrica = {
+                    "nombre": nombre_rubrica,
+                    "descripcion": descripcion_rubrica,
+                    "criterios": criterios,
+                    "teacher_id": st.session_state["current_user"]["_id"],
+                    "teacher_name": st.session_state["current_user"]["fullname"]
+                }
+
+                # Guardar en la base de datos
+                result = backend.save_document("rubrics", nueva_rubrica)
+                
+                if result:
+                    st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
+                else:
+                    st.error("Error al guardar la rúbrica.")
+            else:
+                st.warning("Por favor, completa todos los campos obligatorios.")

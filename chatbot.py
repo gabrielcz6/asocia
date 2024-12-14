@@ -9,6 +9,25 @@ import pandas as pd
 import datetime
 from bson import ObjectId
 
+
+# Función para calcular el promedio de puntajes
+def calculate_average(doc):
+    # Recorremos los resultados y extraemos los puntajes
+    puntajes = []
+    for result in doc['resultados']:
+        valor = result['puntaje']['valor']
+        if valor.isdigit():  # Aseguramos que el valor sea numérico
+            puntajes.append(int(valor))
+    
+    if puntajes:
+        # Calculamos el promedio de los puntajes
+        promedio = sum(puntajes) / len(puntajes)
+    else:
+        promedio = None
+    
+    return promedio
+
+
 backend = MongoConnection()
 backend.connect()
 
@@ -18,54 +37,41 @@ db = client['asocia']
 evaluations_collection = db['evaluations']
 a = evaluations_collection.find()  # Buscar documentos en la colección "evaluations"
 
-
-
-
-
-
-# Aplanamos el documento, separando los valores anidados en columnas
-def flatten_document(doc):
-    flat_doc = {
-        '_id': doc['_id'],
-        'fechaEvaluacion': doc['fechaEvaluacion'],
-        'usuarioEvaluadorID': doc['usuarioEvaluadorID'],
-        'alumnoID': doc['alumnoID'],
-        'rubrica_id': doc['rubrica']['_id'],
-        'rubrica_nombre': doc['rubrica']['nombre']
-    }
-    
-    # Procesar los criterios de la rubrica (pueden tener varias entradas)
-    criterios = doc['rubrica']['criterios']
-    for i, criterio in enumerate(criterios, 1):
-        flat_doc[f'criterio_{i}_id'] = criterio['_id']
-        flat_doc[f'criterio_{i}_nombre'] = criterio['nombre']
-        flat_doc[f'criterio_{i}_puntaje_valor'] = criterio['puntajeOtorgado']['valor']
-        flat_doc[f'criterio_{i}_puntaje_etiqueta'] = criterio['puntajeOtorgado']['etiqueta']
-    
-    return flat_doc
-
-
-
 print(a)
 results = list(a)  # 'a' es el cursor
-for doc in results:
-    print(doc)
+#for doc in results:
+#    print(doc)
 
-# Aplanamos el documento
-flattened_document = flatten_document(results[0])
+  # Aplanamos el documento
+data = (results[0])
+print(data)
+# Función para aplanar el documento
+def flatten_document_with_average(doc):
+    data = []
+    promedio = calculate_average(doc)  # Calculamos el promedio
+    data.append({
+        'id_rubrica': doc['rubrica']['_id'],
+        'nombre_rubrica': doc['rubrica']['nombre'],
+        'teacher_id': doc['teacher_id'],
+        'teacher_name': doc['teacher_name'],
+        'curso_name': doc['curso']['name'],
+        'curso_semester': doc['curso']['semester'],
+        'curso_año': doc['curso']['year'],
+        'fecha': doc['fecha_evaluacion'].strftime('%Y-%m-%d %H:%M:%S'),
+        'alumno_id': doc['alumno']['id'],
+        'alumno_name': doc['alumno']['name'],
+        'promedio_puntajes': promedio
+    })
+    return data
 
-# Convertimos a DataFrame
-df = pd.DataFrame([flattened_document])
+# Aplanar los resultados y almacenar en un DataFrame
+flattened_data = flatten_document_with_average(data)
 
-# Mostramos el DataFrame
-print(df.head(10))
+df = pd.DataFrame(flattened_data)
 
-# Guardar el DataFrame como un archivo Excel
-excel_file = 'evaluations_data.xlsx'
-df.to_excel(excel_file, index=False)
+# Guardar el DataFrame en un archivo Excel
+excel_filename = "evaluaciones_promedio.xlsx"
+df.to_excel(excel_filename, index=False)
 
-# Mostrar un mensaje indicando que el archivo fue guardado
-st.success(f"El archivo Excel ha sido guardado como {excel_file}")
+print(f"El archivo Excel ha sido guardado como {excel_filename}")
 
-# Opcional: Mostrar el DataFrame en Streamlit
-st.write(df)

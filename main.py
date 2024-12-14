@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+from evaluacionesScreen import evaluacionesScreen
 import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso
 from utils.roles import Roles
 
@@ -38,7 +39,7 @@ def multi_app():
         elif st.session_state["user_role"] == Roles.PROFESOR.value:
             app = option_menu(
                 menu_title=st.session_state["current_user"]["fullname"],
-                options=['Mis Cursos', 'Evaluar Estudiantes', 'Mis Rubricas', 'Crear Rubrica V2', 'Cerrar Sesion'],
+                options=['Mis Cursos', 'Crear Rúbricas', 'Mis Rubricas', 'Evaluar Estudiantes', 'Ver Evaluaciones', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -77,7 +78,9 @@ def multi_app():
         mostrarrubricadecano.mostrarrubricadecano()
     elif app == 'Evaluar Estudiantes':
         rubrica.evaluacion_rubrica()
-    elif app == 'Crear Rubrica V2':
+    elif app == 'Ver Evaluaciones':
+        evaluacionesScreen()
+    elif app == 'Crear Rúbricas':
          rubrica.crear_rubrica_v2()
     elif app == 'Mis Rubricas':
          rubrica.listar_rubricas()

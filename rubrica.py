@@ -68,6 +68,7 @@ def evaluacion_rubrica():
     # Obtener los datos completos del alumno seleccionado
     alumno_seleccionado = alumnos_dict[alumno_seleccionado_id]
 
+
     # Selección de rúbrica
     rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_del_profe]
     selected_rubrica_nombre = st.selectbox("Seleccione la rúbrica a evaluar:", rubrica_nombres)
@@ -116,8 +117,20 @@ def evaluacion_rubrica():
 
             if result:
                 st.success(f"Evaluación guardada exitosamente.")
+                st.session_state.success_message = "Evaluación guardada exitosamente."
+                st.rerun()
             else:
                 st.error("Error al guardar la evaluación.")
+                
+        if "selected_rubrica_nombre" not in st.session_state:
+            st.session_state.selected_rubrica_nombre = "Elige una rúbrica"
+        if "success_message" not in st.session_state:
+            st.session_state.success_message = ""
+
+        # Mostrar mensaje de éxito si existe
+        if st.session_state.success_message:
+            st.success(st.session_state.success_message)
+            st.session_state.success_message = ""  
 
 
 

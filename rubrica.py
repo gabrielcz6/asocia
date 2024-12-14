@@ -373,7 +373,7 @@ def crear_rubrica_generic():
 
             # Control del número de puntajes
             if f"num_puntajes_{i}" not in st.session_state:
-                st.session_state[f"num_puntajes_{i}"] = 1
+                st.session_state[f"num_puntajes_{i}"] = 5
 
             num_puntajes = st.number_input(
                 f"Número de Puntajes para el Criterio",
@@ -397,14 +397,18 @@ def crear_rubrica_generic():
                     puntaje_descripcion = st.text_area(
                         f"Etiqueta o descripción del Puntaje {j + 1}",
                         key=f"puntaje_descripcion_{i}_{j}",
-                        height=68  # Puedes ajustar la altura inicial según necesites
+                        height=68 , # Puedes ajustar la altura inicial según necesites
+                        value=utils.funcionespredefinidadisplay.obtener_descripcion_puntaje(j),
+                        
+                           
                     )
 
                 with col2:
                     puntaje_valor = st.text_input(
                     f"Valor del Puntaje {j + 1}",
                     key=f"puntaje_valor_{i}_{j}",
-                    placeholder="Numérico"
+                    placeholder="Numérico",
+                    value=j+1
                 )
                 
                 if puntaje_valor:
@@ -441,11 +445,10 @@ def crear_rubrica_generic():
                 "teacher_id": "",
                 "teacher_name": "",
             }
-
             print(nueva_rubrica)
-           
+            
             # Guardar en la base de datos
-            result = backend.save_document("rubrics_predefinidas", nueva_rubrica)
+            result = backend.save_document("rubrics", nueva_rubrica)
 
             if result:
                 st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")

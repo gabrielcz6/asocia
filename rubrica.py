@@ -69,9 +69,22 @@ def evaluacion_rubrica():
     alumno_seleccionado = alumnos_dict[alumno_seleccionado_id]
 
 
-    # Selección de rúbrica
     rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_del_profe]
-    selected_rubrica_nombre = st.selectbox("Seleccione la rúbrica a evaluar:", rubrica_nombres)
+    if "success_message" not in st.session_state:
+        st.session_state.success_message = ""
+
+        
+    if st.session_state.success_message:
+        st.session_state.rubrica_dropdown = "Elige una rúbrica"
+    else:
+        # Inicializar el estado del dropdown si no existe
+        if "rubrica_dropdown" not in st.session_state:
+            st.session_state.rubrica_dropdown = "Elige una rúbrica"
+
+    # Dropdown de selección de rúbrica
+    selected_rubrica_nombre = st.selectbox(
+        "Seleccione la rúbrica a evaluar:", rubrica_nombres, key="rubrica_dropdown"
+    )
 
     # Mostrar evaluación solo si se selecciona una rúbrica válida
     if selected_rubrica_nombre != "Elige una rúbrica":
@@ -96,14 +109,13 @@ def evaluacion_rubrica():
                             "Seleccione un puntaje:",
                             options=criterio["puntajes"],
                             format_func=lambda x: f"{x['descripcion']} - {x['valor']} pts",
-                            key=criterio["nombre"],
+                            key=f"criterio_{criterio['nombre']}",
                         )
                         resultados.append({"criterio": criterio["nombre"], "puntaje": puntaje})
 
         # Guardar la evaluación
         if st.button("Guardar evaluación"):
             evaluacion = {
-                # "_id": ObjectId(),  # Nuevo ID para la evaluación
                 "rubrica": selected_rubrica,
                 "curso": curso_seleccionado,
                 "fecha_evaluacion": datetime.datetime.now(),
@@ -116,21 +128,16 @@ def evaluacion_rubrica():
             result = backend.save_document(collection_name="evaluations", document=evaluacion)
 
             if result:
-                st.success(f"Evaluación guardada exitosamente.")
+                st.success("Evaluación guardada exitosamente.")
                 st.session_state.success_message = "Evaluación guardada exitosamente."
-                st.rerun()
+                st.rerun()  # Recargar la interfaz
             else:
                 st.error("Error al guardar la evaluación.")
-                
-        if "selected_rubrica_nombre" not in st.session_state:
-            st.session_state.selected_rubrica_nombre = "Elige una rúbrica"
-        if "success_message" not in st.session_state:
-            st.session_state.success_message = ""
 
-        # Mostrar mensaje de éxito si existe
-        if st.session_state.success_message:
-            st.success(st.session_state.success_message)
-            st.session_state.success_message = ""  
+    # Mostrar mensaje de éxito si existe
+    if st.session_state.success_message:
+        st.success(st.session_state.success_message)
+        st.session_state.success_message = ""
 
 
 

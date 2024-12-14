@@ -38,7 +38,7 @@ def multi_app():
         elif st.session_state["user_role"] == Roles.PROFESOR.value:
             app = option_menu(
                 menu_title=st.session_state["current_user"]["fullname"],
-                options=['Mis Cursos', 'Crear Rubrica', 'Mis Rubricas', 'Crear Rubrica V2', 'Cerrar Sesion'],
+                options=['Mis Cursos', 'Evaluar Estudiantes', 'Mis Rubricas', 'Crear Rubrica V2', 'Cerrar Sesion'],
                 icons=['house-fill', 'chat-fill', 'trophy-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -75,8 +75,8 @@ def multi_app():
         st.write("Homeprofesor")        
     elif app == "Buscar Rubricas":
         mostrarrubricadecano.mostrarrubricadecano()
-    elif app == 'Crear Rubrica':
-        rubrica.rubrica()
+    elif app == 'Evaluar Estudiantes':
+        rubrica.evaluacion_rubrica()
     elif app == 'Crear Rubrica V2':
          rubrica.crear_rubrica_v2()
     elif app == 'Mis Rubricas':
@@ -88,9 +88,6 @@ def multi_app():
     elif app == 'Cerrar Sesion':
         logout_button()
 
-    # Botón para cerrar sesión
-    if st.button("Cerrar sesión"):
-        logout_button()
 
 # Función para manejar el login y la validación de rol
 

@@ -1,3 +1,5 @@
+import datetime
+import itertools
 import streamlit as st
 from db.MongoConnection import MongoConnection
 import pandas as pd
@@ -6,7 +8,7 @@ from bson.objectid import ObjectId
 
 
 
-def rubrica():
+def evaluacion_rubrica():
     # Datos de ejemplo: Cursos y alumnos asociados
     backend: MongoConnection = st.session_state.backend
     data = backend.find_courses_by_user(user_id=st.session_state["current_user"]["_id"], include_students=True)
@@ -25,18 +27,10 @@ def rubrica():
                    for course_id, details in cursos.items()}
     # Simulación de una base de datos con las rúbricas almacenadas
     # (Este diccionario simula los datos que podrían venir de una BD)
-    bd_simulada = {
-        "Juan Pérez": "Rúbrica de ejemplo para Juan Pérez.",
-        "María Rodríguez": "Rúbrica de ejemplo para María Rodríguez.",
-        "Laura Fernández": "Rúbrica de ejemplo para Laura Fernández."
-    }
 
-    # Función para predecir el nombre del alumno según lo que se escribe
-    def filtrar_alumnos(alumnos, query):
-        return [alumno for alumno in alumnos if query.lower() in alumno.lower()]
-    
+
     # Título de la app
-    st.title("Creación de Rúbrica para Alumnos")
+    st.title("Evaluar Alumno")
     
     curso_seleccionado_id = st.selectbox(
         "Selecciona un curso",
@@ -74,64 +68,57 @@ def rubrica():
     # Obtener los datos completos del alumno seleccionado
     alumno_seleccionado = alumnos_dict[alumno_seleccionado_id]
 
-    
-    # Paso 3: Verificar si hay una rúbrica ya guardada para este alumno en la "BD"
-    if alumno_seleccionado["name"] in opciones_alumnos:
-        rubrica_actual = bd_simulada[alumno_seleccionado]
-        # Inicializamos un estado de edición
-        if 'editarrubrica' not in st.session_state:
-            st.session_state.editarrubrica = False
-        
-        # Si estamos en modo edición, mostramos un text_area editable, si no, mostramos solo lectura
-        if st.session_state.editarrubrica:
-            rubrica = st.text_area("Edita la rúbrica para el alumno seleccionado", value=rubrica_actual, height=200)
-        else:
-            st.text_area("Rúbrica actual (solo lectura)", value=rubrica_actual, height=200, disabled=True)
-        
-        # Botón para editar la rúbrica
-        if not st.session_state.editarrubrica:
-            if st.button("Editar Rúbrica"):
-                st.session_state.editarrubrica = True
-                st.rerun()  # Recargar la página para habilitar la edición
-        else:
-            # Botón para guardar la rúbrica editada
-            if st.button("Guardar Rúbrica"):
-                if rubrica.strip():  # Verificamos que no esté vacía
-                    bd_simulada[alumno_seleccionado] = rubrica
-                    st.session_state.editarrubrica = False  # Deshabilitar edición después de guardar
-                    st.success(f"Rúbrica guardada para {alumno_seleccionado}")                  
-                    st.rerun() 
-                else:
-                    st.warning("La rúbrica no puede estar vacía.")
-                    st.rerun() 
-    else:
-        rubrica = st.text_area("Escribe la rúbrica para el alumno seleccionado", height=200)
-        
-        # Botón para guardar la nueva rúbrica
-        if st.button("Guardar Rúbrica"):
-            if rubrica.strip():  # Verificamos que no esté vacía
-                if backend.save_rubric(student=alumno_seleccionado,course=curso_seleccionado,rubric=rubrica, course_id=curso_seleccionado_id, teacher_id=st.session_state["current_user"]["_id"], teacher_name = st.session_state["current_user"]["fullname"]):
-                # bd_simulada[alumno_seleccionado["name"]] = rubrica
-                    st.success(f"Rúbrica guardada para {alumno_seleccionado["name"]}")
-                    print(st.session_state["current_user"])
-                    rubricas_del_profe = backend.find_documents("evaluations", {"usuarioEvaluadorID" : st.session_state["current_user"]["_id"]})
-                else:
-                    st.error(f"Rúbrica no guardada para {alumno_seleccionado["name"]}")
-            else:
-                st.warning("La rúbrica no puede estar vacía.")
-    
-    # Mostrar la información final
-    if alumno_seleccionado["name"] in bd_simulada:
-        st.write(f"Rúbrica para {alumno_seleccionado}, {curso_seleccionado}:")
-        st.write(bd_simulada[alumno_seleccionado["name"]])
+    # Selección de rúbrica
+    rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_del_profe]
+    selected_rubrica_nombre = st.selectbox("Seleccione la rúbrica a evaluar:", rubrica_nombres)
 
-    if len(rubricas_del_profe) > 0: 
-        st.title(f"Histórico de Rúbricas")
-        # df = pd.DataFrame(rubricas_del_profe)
-        #df['student'] = df['student'].apply(json.loads)
-        # df['student'] = df['student'].apply(lambda x: x['name'])
-        # df['course'] = df['course'].apply(lambda x: x['name'])
-        st.write(rubricas_del_profe)
+    # Mostrar evaluación solo si se selecciona una rúbrica válida
+    if selected_rubrica_nombre != "Elige una rúbrica":
+        selected_rubrica = next(rubrica for rubrica in rubricas_del_profe if rubrica["nombre"] == selected_rubrica_nombre)
+
+        st.title(f"Evaluación: {selected_rubrica['nombre']}")
+        st.write(f"Docente: {selected_rubrica['teacher_name']}")
+        st.write(f"Descripción: {selected_rubrica['descripcion']}")
+
+        # Interfaz de evaluación
+        resultados = []
+        criterios = selected_rubrica["criterios"]
+        rows = itertools.zip_longest(*(iter(criterios),) * 2)  # Agrupa los criterios de 2 en 2
+
+        for row in rows:
+            cols = st.columns([1, 0.1, 1])  # Ajusta el espacio entre columnas
+            for col, criterio in zip([cols[0], cols[2]], row):
+                if criterio:  # Asegura que no haya iteraciones nulas
+                    with col:
+                        st.subheader(criterio["nombre"])
+                        puntaje = st.radio(
+                            "Seleccione un puntaje:",
+                            options=criterio["puntajes"],
+                            format_func=lambda x: f"{x['descripcion']} - {x['valor']} pts",
+                            key=criterio["nombre"],
+                        )
+                        resultados.append({"criterio": criterio["nombre"], "puntaje": puntaje})
+
+        # Guardar la evaluación
+        if st.button("Guardar evaluación"):
+            evaluacion = {
+                # "_id": ObjectId(),  # Nuevo ID para la evaluación
+                "rubrica": selected_rubrica,
+                "curso": curso_seleccionado,
+                "fecha_evaluacion": datetime.datetime.now(),
+                "teacher_id": selected_rubrica["teacher_id"],
+                "teacher_name": selected_rubrica["teacher_name"],
+                "alumno": alumno_seleccionado,
+                "resultados": resultados,
+            }
+
+            result = backend.save_document(collection_name="evaluations", document=evaluacion)
+
+            if result:
+                st.success(f"Evaluación guardada exitosamente.")
+            else:
+                st.error("Error al guardar la evaluación.")
+
 
 
 def crear_rubrica_v2():

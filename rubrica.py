@@ -4,6 +4,7 @@ import streamlit as st
 from db.MongoConnection import MongoConnection
 import pandas as pd
 import json
+import utils.funcionespredefinidadisplay
 from bson.objectid import ObjectId
 
 
@@ -214,6 +215,164 @@ def crear_rubrica_v2():
 
             # Control del número de puntajes
             if f"num_puntajes_{i}" not in st.session_state:
+                st.session_state[f"num_puntajes_{i}"] = 5
+
+            num_puntajes = st.number_input(
+                f"Número de Puntajes para el Criterio",
+                min_value=1,
+                max_value=10,
+                step=1,
+                value=st.session_state[f"num_puntajes_{i}"],
+                key=f"num_puntajes_input_{i}"
+            )
+
+            if num_puntajes != st.session_state[f"num_puntajes_{i}"]:
+                st.session_state[f"num_puntajes_{i}"] = num_puntajes
+                st.rerun()
+
+            # Campos para puntajes
+            puntajes = []
+            for j in range(int(st.session_state[f"num_puntajes_{i}"])):
+                col1, col2 = st.columns([4, 1])
+
+                with col1:
+                    puntaje_descripcion = st.text_area(
+                        f"Etiqueta o descripción del Puntaje {j + 1}",
+                        key=f"puntaje_descripcion_{i}_{j}",
+                        height=68 , # Puedes ajustar la altura inicial según necesites
+                        value=utils.funcionespredefinidadisplay.obtener_descripcion_puntaje(j),
+                        
+                           
+                    )
+
+                with col2:
+                    puntaje_valor = st.text_input(
+                    f"Valor del Puntaje {j + 1}",
+                    key=f"puntaje_valor_{i}_{j}",
+                    placeholder="Numérico",
+                    value=j+1
+                )
+                
+                if puntaje_valor:
+                    try:
+                        puntaje_valor_float = float(puntaje_valor)  # Convertir a flotante
+                        if puntaje_valor_float < 0.0:
+                            st.error("El valor debe ser mayor o igual a 0.0.")
+                            puntaje_valor_float = None  # Invalidar el valor
+                    except ValueError:
+                        st.error("Por favor, ingresa un número válido.")
+                        puntaje_valor_float = None
+                else:
+                    puntaje_valor_float = None
+
+                puntajes.append({
+                    "valor": puntaje_valor,
+                    "descripcion": puntaje_descripcion
+                })
+
+            # Añadir el criterio a la lista de criterios
+            criterios.append({
+                "nombre": nombre_criterio,
+                "puntajes": puntajes
+            })
+
+    # Botón de guardar (simulando el envío de un formulario)
+    if st.button("Guardar Rúbrica"):
+        if nombre_rubrica and all(c["nombre"] for c in criterios):
+            # Crear el documento para la base de datos
+            nueva_rubrica = {
+                "nombre": nombre_rubrica,
+                "descripcion": descripcion_rubrica,
+                "criterios": criterios,
+                "teacher_id": st.session_state["current_user"]["_id"],
+                "teacher_name": st.session_state["current_user"]["fullname"]
+            }
+            print(nueva_rubrica)
+            
+            # Guardar en la base de datos
+            result = backend.save_document("rubrics", nueva_rubrica)
+
+            if result:
+                st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
+            else:
+                st.error("Error al guardar la rúbrica.")
+        else:
+            st.warning("Por favor, completa todos los campos obligatorios.")
+            
+
+def crear_rubrica_generic():
+    st.title("Crear Rúbrica para los profesores")
+
+    # Inicializar la conexión a MongoDB (Simulación aquí)
+    backend: MongoConnection = st.session_state.backend
+
+    # Agregar estilos CSS personalizados
+    st.markdown(
+        """
+        <style>
+        /* Estilo para inputs numéricos */
+        div[data-testid="stNumberInputContainer"] {
+            width: 120px !important;
+            font-size: 14px;
+        }
+
+        /* Estilo para inputs de texto */
+        div[data-testid="stTextInput"] input {
+            font-size: 14px;
+        }
+
+        /* Estilo para text areas */
+        div[data-testid="stTextArea"] textarea {
+            font-size: 14px;
+        }
+
+        /* Estilo para subencabezados */
+        h2 {
+            color: #1f77b4;
+        }
+
+        /* Reducir el margen de los expanders */
+        .streamlit-expander {
+            margin-bottom: 10px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # Inicializar el estado para número de criterios
+    if "num_criterios" not in st.session_state:
+        st.session_state.num_criterios = 1
+
+    # Control de la rúbrica (nombre y descripción)
+    st.subheader("Información de la Rúbrica")
+    nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
+    descripcion_rubrica = st.text_area("Descripción de la Rúbrica (opcional)", height=100)
+
+    # Control del número de criterios
+    st.subheader("Criterios")
+    num_criterios = st.number_input(
+        "Número de Criterios",
+        min_value=1,
+        max_value=10,
+        step=1,
+        value=st.session_state.num_criterios,
+        key="num_criterios_input"
+    )
+
+    # Si el valor cambia, actualiza el estado
+    if num_criterios != st.session_state.num_criterios:
+        st.session_state.num_criterios = num_criterios
+        st.rerun()
+
+    # Campos para criterios
+    criterios = []
+    for i in range(int(st.session_state.num_criterios)):
+        with st.expander(f"Criterio {i + 1}", expanded=True):
+            nombre_criterio = st.text_input(f"Nombre del Criterio", key=f"nombre_criterio_{i}")
+
+            # Control del número de puntajes
+            if f"num_puntajes_{i}" not in st.session_state:
                 st.session_state[f"num_puntajes_{i}"] = 1
 
             num_puntajes = st.number_input(
@@ -279,12 +438,14 @@ def crear_rubrica_v2():
                 "nombre": nombre_rubrica,
                 "descripcion": descripcion_rubrica,
                 "criterios": criterios,
-                "teacher_id": st.session_state["current_user"]["_id"],
-                "teacher_name": st.session_state["current_user"]["fullname"]
+                "teacher_id": "",
+                "teacher_name": "",
             }
 
+            print(nueva_rubrica)
+           
             # Guardar en la base de datos
-            result = backend.save_document("rubrics", nueva_rubrica)
+            result = backend.save_document("rubrics_predefinidas", nueva_rubrica)
 
             if result:
                 st.success(f"Rúbrica '{nombre_rubrica}' guardada exitosamente.")
@@ -292,7 +453,6 @@ def crear_rubrica_v2():
                 st.error("Error al guardar la rúbrica.")
         else:
             st.warning("Por favor, completa todos los campos obligatorios.")
-            
 
 def listar_rubricas():
     st.title("Listado de Rúbricas")

@@ -52,7 +52,7 @@ def multi_app():
         elif st.session_state["user_role"] == Roles.SECRETARIA.value:  # Secretaria
             app = option_menu(
                 menu_title='Secretaria',
-                options=['Crear Curso', 'Cerrar Sesion'],
+                options=['Crear Nueva Rubrica', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -83,8 +83,8 @@ def multi_app():
          rubrica.listar_rubricas()
     elif app == 'Mis Cursos':
         miscursos.miscursos()
-    elif app == 'Crear Curso':
-        crearcurso.crearcurso()    
+    elif app == 'Crear Nueva Rubrica':
+        rubrica.crear_rubrica_generic()    
     elif app == 'Cerrar Sesion':
         logout_button()
 

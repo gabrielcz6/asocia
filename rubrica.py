@@ -156,7 +156,7 @@ def evaluacion_rubrica():
 
 
 def crear_rubrica_v2():
-    st.title("Crear Rúbrica V2")
+    st.title("Crear Rúbrica")
 
     # Inicializar la conexión a MongoDB (Simulación aquí)
     backend: MongoConnection = st.session_state.backend

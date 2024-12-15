@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+from evaluacionesDecano import evaluacionesDecano
 from evaluacionesScreen import evaluacionesScreen
 import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso,chatbot
 from utils.roles import Roles
@@ -25,7 +26,11 @@ def multi_app():
             # backend.find_courses_by_user()
             app = option_menu(
                 menu_title='Decano',
+<<<<<<< HEAD
                 options=['Buscar Alumnos por Rubricas', 'Cerrar Sesion'],
+=======
+                options=['Inicio', 'Buscar Rubricas', 'Cerrar Sesion'],
+>>>>>>> 36e93a43c78bf94ee3edc66bbd48383c6ee5a7d2
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -83,8 +88,8 @@ def multi_app():
     # Aquí se definen las páginas según la opción seleccionada
     if app == "Home":
         st.write("Página principal")
-    elif app == "Homedecano":
-        st.write("Homedecano")
+    elif app == "Inicio":
+        evaluacionesDecano()
     elif app == "Homesecretaria":
         st.write("Homesecretaria")
     elif app == "Homeprofesor":

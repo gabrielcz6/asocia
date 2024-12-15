@@ -26,11 +26,7 @@ def multi_app():
             # backend.find_courses_by_user()
             app = option_menu(
                 menu_title='Decano',
-<<<<<<< HEAD
-                options=['Buscar Alumnos por Rubricas', 'Cerrar Sesion'],
-=======
                 options=['Inicio', 'Buscar Rubricas', 'Cerrar Sesion'],
->>>>>>> 36e93a43c78bf94ee3edc66bbd48383c6ee5a7d2
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,

@@ -39,7 +39,7 @@ def mostrarrubricadecano():
    print(curso)
 
    if curso != None:
-       rubrics = backend.find_documents(collection_name='rubrics', query= {"course.name" : curso})
+       rubrics = backend.find_documents(collection_name='rubrics', query= {"curso.name" : curso})
 
    print(rubrics)
        

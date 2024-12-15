@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from evaluacionesScreen import evaluacionesScreen
-import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso
+import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso,chatbot
 from utils.roles import Roles
 
 # Definimos las diferentes páginas de la app
@@ -25,7 +25,7 @@ def multi_app():
             # backend.find_courses_by_user()
             app = option_menu(
                 menu_title='Decano',
-                options=['Buscar Rubricas', 'Cerrar Sesion'],
+                options=['Buscar Alumnos por Rubricas', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -64,6 +64,21 @@ def multi_app():
                     "nav-link-selected": {"background-color": "#02ab21"},
                 }
             )
+        elif st.session_state["user_role"] == Roles.IA.value:  # IA
+            app = option_menu(
+                menu_title='IA',
+                options=['Buscar Alumnos con IA', 'Cerrar Sesion'],
+                icons=['house-fill', 'person-circle', 'info-circle-fill'],
+                menu_icon='chat-text-fill',
+                default_index=0,
+                styles={
+                    "container": {"padding": "5!important", "background-color": 'black'},
+                    "icon": {"color": "white", "font-size": "23px"},
+                    "nav-link": {"color": "white", "font-size": "20px", "text-align": "left", "margin": "0px", "--hover-color": "blue"},
+                    "nav-link-selected": {"background-color": "#02ab21"},
+                }
+            )
+   
 
     # Aquí se definen las páginas según la opción seleccionada
     if app == "Home":
@@ -90,6 +105,11 @@ def multi_app():
         rubrica.crear_rubrica_generic()    
     elif app == 'Cerrar Sesion':
         logout_button()
+    elif app == 'Buscar Alumnos con IA':
+        chatbot.chatbot_ia()  
+
+        
+      
 
 
 # Función para manejar el login y la validación de rol

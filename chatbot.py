@@ -1,77 +1,69 @@
-import itertools
 import streamlit as st
-from db.MongoConnection import MongoConnection
-import pandas as pd
-import json
-import utils.funcionespredefinidadisplay
-from pymongo import MongoClient
-import pandas as pd
-import datetime
-from bson import ObjectId
+from utils2 import responderquery
+import torch
 
 
-# Función para calcular el promedio de puntajes
-def calculate_average(doc):
-    # Recorremos los resultados y extraemos los puntajes
-    puntajes = []
-    for result in doc['resultados']:
-        valor = result['puntaje']['valor']
-        if valor.isdigit():  # Aseguramos que el valor sea numérico
-            puntajes.append(int(valor))
-    
-    if puntajes:
-        # Calculamos el promedio de los puntajes
-        promedio = sum(puntajes) / len(puntajes)
-    else:
-        promedio = None
-    
-    return promedio
-
-
-backend = MongoConnection()
-backend.connect()
-
-
-client = MongoClient('mongodb://localhost:27017/')
-db = client['asocia']
-evaluations_collection = db['evaluations']
-a = evaluations_collection.find()  # Buscar documentos en la colección "evaluations"
-
-print(a)
-results = list(a)  # 'a' es el cursor
-#for doc in results:
-#    print(doc)
-
-  # Aplanamos el documento
-data = (results[0])
-print(data)
-# Función para aplanar el documento
-def flatten_document_with_average(doc):
-    data = []
-    promedio = calculate_average(doc)  # Calculamos el promedio
-    data.append({
-        'id_rubrica': doc['rubrica']['_id'],
-        'nombre_rubrica': doc['rubrica']['nombre'],
-        'teacher_id': doc['teacher_id'],
-        'teacher_name': doc['teacher_name'],
-        'curso_name': doc['curso']['name'],
-        'curso_semester': doc['curso']['semester'],
-        'curso_año': doc['curso']['year'],
-        'fecha': doc['fecha_evaluacion'].strftime('%Y-%m-%d %H:%M:%S'),
-        'alumno_id': doc['alumno']['id'],
-        'alumno_name': doc['alumno']['name'],
-        'promedio_puntajes': promedio
-    })
-    return data
-
-# Aplanar los resultados y almacenar en un DataFrame
-flattened_data = flatten_document_with_average(data)
-
-df = pd.DataFrame(flattened_data)
-
-# Guardar el DataFrame en un archivo Excel
-excel_filename = "evaluaciones_promedio.xlsx"
-df.to_excel(excel_filename, index=False)
-
-print(f"El archivo Excel ha sido guardado como {excel_filename}")
-
+def chatbot_ia():
+  #input("gato")
+  def reiniciarChat():
+      """Función que reinicia el chat y borra el historial"""
+      st.toast("CHAT INICIADO", icon='🤖')
+      # Inicializamos el historial de chat
+      if "messages" in st.session_state:
+          st.session_state.messages = []
+  
+  
+  
+  st.header('Habla con la IA de las Rubricas')
+  
+  # Menú lateral para configurar parámetros
+  with st.sidebar:
+      st.subheader('Parámetros')
+      parUsarMemoria = st.checkbox("Recordar la conversación", value=True, on_change=reiniciarChat)
+  
+  # Inicialización del historial de chat si no existe
+  if "messages" not in st.session_state:
+      st.session_state.messages = []
+  
+  # Mostrar los mensajes anteriores en el chat
+  with st.container():
+      for message in st.session_state.messages:
+          if message["role"] != "system":  # Omitimos los mensajes del sistema
+              with st.chat_message(message["role"]):
+                  st.markdown(message["content"])
+  
+  # Campo para el mensaje del usuario
+  prompt = st.chat_input("¿Qué quieres saber?")
+  
+  if prompt:
+      # Mostrar mensaje del usuario
+      st.chat_message("user").markdown(prompt)
+      
+      # Agregar mensaje del usuario al historial
+      st.session_state.messages.append({"role": "user", "content": prompt})
+  
+      # Definir el historial de mensajes a enviar a la función `responderquery`
+      if parUsarMemoria:
+          # Usar todo el historial de chat
+          messages = [
+              {"role": m["role"], "content": m["content"]} for m in st.session_state.messages
+          ]
+      else:
+          # Solo enviar el primer y último mensaje (sin memoria)
+          messages = [
+              {"role": st.session_state.messages[0]["role"], "content": st.session_state.messages[0]["content"]},
+              {"role": st.session_state.messages[-1]["role"], "content": st.session_state.messages[-1]["content"]}
+          ]
+     # input("esto es")    
+     # input(messages)
+      # Llamar a la función `responderquery` con el historial de mensajes
+      respuesta = responderquery(messages)
+      
+  
+      # Mostrar respuesta del asistente en el chat
+      with st.chat_message("assistant"):
+          st.write(respuesta)
+      
+      # Agregar respuesta del asistente al historial
+      st.session_state.messages.append({"role": "assistant", "content": respuesta})
+  

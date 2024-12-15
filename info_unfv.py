@@ -40,7 +40,7 @@ def infounfv():
 
   
   
-  col1, col2, col3 = st.columns(3)
+  col1, col2, col3,col4 = st.columns(4)
   
     # Columna 1
   with col1:
@@ -68,6 +68,15 @@ def infounfv():
               st.rerun()
               st.image("https://via.placeholder.com/150", caption="Decano")
               st.write("Descripción de la noticia 1...")
+
+  # Columna 3
+  with col4:
+            if st.button('Ir a Login para buscar alumnos con IA'):
+              st.session_state["logged_in"] = False  # Si no está logueado, redirigir al login
+              st.session_state["current_page"] = "login"
+              st.rerun()
+              st.image("https://via.placeholder.com/150", caption="IA")
+              st.write("Descripción de la noticia 1...")            
   # Footer
   st.markdown("""
       <style>

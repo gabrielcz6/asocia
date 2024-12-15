@@ -4,6 +4,7 @@ class Roles(Enum):
     DECANO = "decano"
     PROFESOR = "profesor"
     SECRETARIA = "secretaria"
+    IA="IA"
 
 if __name__ == "__main__":
     # Uso

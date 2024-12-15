@@ -34,4 +34,12 @@ db.users.insertMany([
       "rol": "decano",
       "fullname": "Morales Díaz, Pedro Alejandro"
     }
+,
+    {
+      "_id": ObjectId("67550e8e278f66cc36fe9346"),
+      "usuario": "ia1",
+      "password": "ia123",
+      "rol": "IA",
+      "fullname": "IA"
+    }
   ]);  

@@ -161,7 +161,7 @@ def crear_rubrica_v2():
     }
 
     opciones_cursos = {
-        course_id: f"{details['name']} - {details['semester']} ({details['year']})"
+        course_id: f"{details['name']} - semestre {details['semester']} ({details['year']})"
         for course_id, details in cursos.items()
     }
 
@@ -170,7 +170,7 @@ def crear_rubrica_v2():
     curso_seleccionado_id = st.selectbox(
         "Selecciona un curso para asociar a esta rúbrica",
         options=list(opciones_cursos.keys()),
-        format_func=lambda x: opciones_cursos[x]
+        format_func=lambda x: opciones_cursos[x], 
     )   
     curso_seleccionado = cursos[curso_seleccionado_id]
 
@@ -214,7 +214,11 @@ def crear_rubrica_v2():
 
     # Control de la rúbrica (nombre y descripción)
     st.subheader("Información de la Rúbrica")
-    nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        nombre_rubrica = st.text_input("Nombre de la Rúbrica", max_chars=100)
+    with col2:
+        es_reutilizable = st.checkbox("Es reutilizable", value=False)
     descripcion_rubrica = st.text_area("Descripción de la Rúbrica (opcional)", height=100)
 
     # Control del número de criterios
@@ -312,6 +316,7 @@ def crear_rubrica_v2():
                 "criterios": criterios,
                 "teacher_id": st.session_state["current_user"]["_id"],
                 "teacher_name": st.session_state["current_user"]["fullname"],
+                "es_reutilizable": es_reutilizable,
                 "curso": {
                     "id": curso_seleccionado_id,
                     "name": curso_seleccionado["name"],
@@ -319,7 +324,6 @@ def crear_rubrica_v2():
                     "year": curso_seleccionado["year"]
                 }
             }
-            print(nueva_rubrica)
             
             # Guardar en la base de datos
             result = backend.save_document("rubrics", nueva_rubrica)
@@ -331,6 +335,7 @@ def crear_rubrica_v2():
         else:
             st.warning("Por favor, completa todos los campos obligatorios.")
             
+
 
 def crear_rubrica_generic():
     st.title("Crear Rúbrica para los profesores")

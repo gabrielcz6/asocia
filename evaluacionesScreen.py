@@ -91,9 +91,6 @@ def evaluacionesScreen():
     else:
         st.info("No se encontraron evaluaciones.")
 
-from datetime import datetime
-
-from datetime import datetime
 
 from datetime import datetime
 
@@ -148,6 +145,9 @@ def generar_posts_rubricas(evaluaciones, showCourse=True):
         else:
             fecha_formateada = datetime.strptime(evaluacion['fecha_evaluacion'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d/%m/%Y %H:%M")
 
+        total_obtenido = 0
+        total_maximo = 0
+
         html += f"""
         <div class="post">
             <h4>{evaluacion['rubrica']['nombre'].upper()}</h4>
@@ -161,6 +161,11 @@ def generar_posts_rubricas(evaluaciones, showCourse=True):
         html += "<strong>Resultados:</strong>"
 
         for idx, resultado in enumerate(evaluacion["resultados"], start=1):
+            total_obtenido += float(resultado['puntaje']['valor'])
+            for criterio in evaluacion["rubrica"]["criterios"]:
+                if criterio["nombre"] == resultado["criterio"]:
+                    total_maximo += max(float(p["valor"]) for p in criterio["puntajes"])
+
             html += f"""
                 <p><strong>{idx}. {resultado['criterio']}</strong>: {resultado['puntaje']['descripcion']} ({resultado['puntaje']['valor']} pts)</p>
                 <p style="margin-left: 20px;"><strong>Posibles puntajes:</strong></p>
@@ -172,7 +177,7 @@ def generar_posts_rubricas(evaluaciones, showCourse=True):
                         html += f"<li>{puntaje['descripcion']} ({puntaje['valor']} pts)</li>"
             html += "</ul>"
 
-        html += "</div></div>"
+        html += f"</div><p style='text-align: right;'><strong>Puntuación Final:</strong> {total_obtenido}/{total_maximo} pts</p></div>"
 
     html += "</div>"
     return html

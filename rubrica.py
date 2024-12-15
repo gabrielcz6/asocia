@@ -502,60 +502,60 @@ def listar_rubricas():
         st.warning("No hay rúbricas disponibles.")
         return
 
-    # Transformar los datos en una lista de diccionarios para la tabla
-    # data = []
-    # for rubrica in rubricas:
-    #     # Extraer solo los parámetros que deseas mostrar
-    #     for criterio in rubrica["criterios"]:
-    #         data.append({
-    #             "Nombre Rúbrica": rubrica["nombre"],
-    #             "Descripción Rúbrica": rubrica["descripcion"],
-    #             "Nombre Criterio": criterio["nombre"],
-    #             "Descripción Criterio": criterio["descripcion"],
-    #             "Teacher": rubrica["teacher_name"]
-    #         })
+    # Obtener la lista de cursos disponibles
+    cursos = list({rubrica["curso"]["name"] for rubrica in rubricas})
+    cursos.insert(0, "Elige un curso")
 
-    data = []
-    for rubrica in rubricas:
-        # Agregar solo un registro por rúbrica
-        data.append({
-            "ID": str(rubrica["_id"]),
-            "Nombre Rúbrica": rubrica["nombre"],
-            "Descripción Rúbrica": rubrica["descripcion"],
-            "Teacher": rubrica["teacher_name"]
-        })
-    # Crear un DataFrame de pandas
-    df = pd.DataFrame(data)
+    # Selectbox para filtrar por curso
+    curso_seleccionado = st.selectbox("Filtrar por curso", cursos)
 
-    # Mostrar la tabla en Streamlit
-    st.dataframe(df)
+    # Filtrar las rúbricas según el curso seleccionado
+    if curso_seleccionado != "Elige un curso":
+        rubricas_filtradas = [rubrica for rubrica in rubricas if rubrica["curso"]["name"] == curso_seleccionado]
+        header = f"Rúbricas del Curso: {curso_seleccionado}"
+    else:
+        rubricas_filtradas = rubricas
+        header = "Todas mis Rúbricas"
 
-    for rubrica in rubricas:
-        with st.expander(f"Detalles de '{rubrica['nombre']}'"):
+    st.header(header)
+
+    for rubrica in rubricas_filtradas:
+        if curso_seleccionado == "Elige un curso":
+            expander_label = f"Detalles de '{rubrica['nombre']}': rúbrica del curso {rubrica['curso']['name']}"
+        else:
+            expander_label = f"Detalles de '{rubrica['nombre']}'"
+        
+        with st.expander(expander_label):
+            st.subheader(f"{rubrica['nombre']}")
+            st.write(f"**Curso:** {rubrica['curso']['name']}")
             st.write(f"**Descripción:** {rubrica['descripcion']}")
-            st.write(f"**Teacher:** {rubrica['teacher_name']}")
 
             # Botón para ver los criterios
             if st.button(f"Ver Criterios de '{rubrica['nombre']}'", key=f"ver_criterios_{rubrica['_id']}"):
                 mostrar_criterios(rubrica)
+
                 
     # Opcional: Mostrar tabla estática
     # st.table(df)
-def mostrar_criterios(rubrica):
-    st.subheader(f"Criterios de la Rúbrica '{rubrica['nombre']}'")
 
-    # Crear una lista de diccionarios con los criterios
-    data_criterios = []
+
+
+
+def mostrar_criterios(rubrica):    
+    # Crear tarjetas HTML para los criterios
     for criterio in rubrica["criterios"]:
-        data_criterios.append({
-            "Nombre Criterio": criterio["nombre"],
-            "Puntajes": ", ".join([f"{p['valor']} ({p['descripcion']})" for p in criterio["puntajes"]])
-        })
-
-    # Crear un DataFrame para los criterios
-    df_criterios = pd.DataFrame(data_criterios)
-
-    # Mostrar la tabla con los criterios
-    st.dataframe(df_criterios)
-# Llamar a la función para listar rúbricas
-
+        puntajes_html = "".join([
+            f"<li><strong>{p['descripcion']}</strong>: ({p['valor']} pts)</li>"
+            for p in criterio["puntajes"]
+        ])
+        
+        criterio_html = f"""
+        <div style='border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);'>
+            <h4 style='margin: 0 0 10px; color: #333;'>{criterio['nombre']}:</h4>
+            <ul style='padding-left: 20px; color: #555;'>
+                {puntajes_html}
+            </ul>
+        </div>
+        """
+        
+        st.markdown(criterio_html, unsafe_allow_html=True)

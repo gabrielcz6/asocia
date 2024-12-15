@@ -25,7 +25,7 @@ def multi_app():
             # backend.find_courses_by_user()
             app = option_menu(
                 menu_title='Decano',
-                options=['Buscar Rubricas', 'Cerrar Sesion'],
+                options=['Buscar Rubricas','Reporte Rubrica' ,'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'trophy-fill', 'chat-fill', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -76,6 +76,8 @@ def multi_app():
         st.write("Homeprofesor")        
     elif app == "Buscar Rubricas":
         mostrarrubricadecano.mostrarrubricadecano()
+    elif app == "Reporte Rubrica":
+        mostrarrubricadecano.mostrarrubricadecano2()
     elif app == 'Evaluar Estudiantes':
         rubrica.evaluacion_rubrica()
     elif app == 'Ver Evaluaciones':

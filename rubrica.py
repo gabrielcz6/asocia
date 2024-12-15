@@ -69,12 +69,25 @@ def evaluacion_rubrica():
     # Obtener los datos completos del alumno seleccionado
     alumno_seleccionado = alumnos_dict[alumno_seleccionado_id]
     # Filtrar las rúbricas asociadas al curso seleccionado
-    rubricas_filtradas = [
-        rubrica for rubrica in rubricas_del_profe if rubrica["curso"]["id"] == curso_seleccionado_id
-    ]
+    rubricas_filtradas = []
+    for rubrica in rubricas_del_profe:
+        if rubrica["es_reutilizable"]:
+            rubricas_filtradas.append(rubrica)
+        else:
+            # Verificar si la rúbrica ya fue resuelta para el alumno seleccionado
+            evaluaciones_previas = backend.find_documents(
+                "evaluations",
+                {
+                    "rubrica._id": rubrica["_id"],
+                    "alumno.id": alumno_seleccionado_id,
+                }
+            )
+            if not evaluaciones_previas:  # Solo incluir si no hay evaluaciones previas
+                rubricas_filtradas.append(rubrica)
 
     # Preparar nombres de las rúbricas para el selectbox
     rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_filtradas]
+
 
     if "success_message" not in st.session_state:
         st.session_state.success_message = ""
@@ -546,21 +559,55 @@ def listar_rubricas():
 
 
 
-def mostrar_criterios(rubrica):    
-    # Crear tarjetas HTML para los criterios
-    for criterio in rubrica["criterios"]:
+def mostrar_criterios(rubrica):
+    # Crear tarjetas HTML para los criterios en filas de dos columnas
+    criterios_html = ""
+    for i, criterio in enumerate(rubrica["criterios"]):
         puntajes_html = "".join([
             f"<li><strong>{p['descripcion']}</strong>: ({p['valor']} pts)</li>"
             for p in criterio["puntajes"]
         ])
-        
+
         criterio_html = f"""
-        <div style='border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);'>
+        <div class='criterio-card'>
             <h4 style='margin: 0 0 10px; color: #333;'>{criterio['nombre']}:</h4>
             <ul style='padding-left: 20px; color: #555;'>
                 {puntajes_html}
             </ul>
         </div>
         """
-        
-        st.markdown(criterio_html, unsafe_allow_html=True)
+
+        # Añadir el criterio al HTML general
+        criterios_html += criterio_html
+
+    # Contenedor general con estilo CSS para dos columnas
+    st.markdown(
+        f"""
+        <style>
+        .criterios-container {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+        }}
+        .criterio-card {{
+            flex: 1 1 calc(50% - 20px);
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            min-width: 280px;
+        }}
+        @media (max-width: 600px) {{
+            .criterio-card {{
+                flex: 1 1 100%;
+            }}
+        }}
+        </style>
+        <div class='criterios-container'>
+            {criterios_html}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )

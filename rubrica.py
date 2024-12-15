@@ -68,23 +68,23 @@ def evaluacion_rubrica():
 
     # Obtener los datos completos del alumno seleccionado
     alumno_seleccionado = alumnos_dict[alumno_seleccionado_id]
+    # Filtrar las rúbricas asociadas al curso seleccionado
+    rubricas_filtradas = [
+        rubrica for rubrica in rubricas_del_profe if rubrica["curso"]["id"] == curso_seleccionado_id
+    ]
 
+    # Preparar nombres de las rúbricas para el selectbox
+    rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_filtradas]
 
-    rubrica_nombres = ["Elige una rúbrica"] + [rubrica["nombre"] for rubrica in rubricas_del_profe]
     if "success_message" not in st.session_state:
         st.session_state.success_message = ""
 
         
-    if st.session_state.success_message:
-        st.session_state.rubrica_dropdown = "Elige una rúbrica"
-    else:
-        # Inicializar el estado del dropdown si no existe
-        if "rubrica_dropdown" not in st.session_state:
-            st.session_state.rubrica_dropdown = "Elige una rúbrica"
-
     # Dropdown de selección de rúbrica
     selected_rubrica_nombre = st.selectbox(
-        "Seleccione la rúbrica a evaluar:", rubrica_nombres, key="rubrica_dropdown"
+        "Seleccione la rúbrica a evaluar:",
+        rubrica_nombres,
+        key="rubrica_dropdown"
     )
 
     # Mostrar evaluación solo si se selecciona una rúbrica válida
@@ -147,6 +147,32 @@ def crear_rubrica_v2():
 
     # Inicializar la conexión a MongoDB (Simulación aquí)
     backend: MongoConnection = st.session_state.backend
+
+    # Obtener los cursos del docente
+    data = backend.find_courses_by_user(user_id=st.session_state["current_user"]["_id"], include_students=True)
+    cursos = {
+        course["_id"]: {
+            "name": course["name"],
+            "semester": course["semester"],
+            "year": course["year"],
+            "students": course["students"]
+        }
+        for course in data
+    }
+
+    opciones_cursos = {
+        course_id: f"{details['name']} - {details['semester']} ({details['year']})"
+        for course_id, details in cursos.items()
+    }
+
+    # Selección de curso
+    st.subheader("Seleccionar Curso")
+    curso_seleccionado_id = st.selectbox(
+        "Selecciona un curso para asociar a esta rúbrica",
+        options=list(opciones_cursos.keys()),
+        format_func=lambda x: opciones_cursos[x]
+    )   
+    curso_seleccionado = cursos[curso_seleccionado_id]
 
     # Agregar estilos CSS personalizados
     st.markdown(
@@ -285,7 +311,13 @@ def crear_rubrica_v2():
                 "descripcion": descripcion_rubrica,
                 "criterios": criterios,
                 "teacher_id": st.session_state["current_user"]["_id"],
-                "teacher_name": st.session_state["current_user"]["fullname"]
+                "teacher_name": st.session_state["current_user"]["fullname"],
+                "curso": {
+                    "id": curso_seleccionado_id,
+                    "name": curso_seleccionado["name"],
+                    "semester": curso_seleccionado["semester"],
+                    "year": curso_seleccionado["year"]
+                }
             }
             print(nueva_rubrica)
             

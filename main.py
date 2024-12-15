@@ -2,7 +2,7 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from evaluacionesDecano import evaluacionesDecano
 from evaluacionesScreen import evaluacionesScreen
-import info_unfv, login,miscursos,rubrica,mostrarrubricadecano,crearcurso,chatbot
+import info_unfv, login,miscursos,rubrica,crearcurso,chatbot
 from utils.roles import Roles
 
 # Definimos las diferentes páginas de la app

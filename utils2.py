@@ -41,7 +41,7 @@ def responderquery(query):
               chunks_relevant=chunks_df.iloc[top_k_indices]
 
                 # Convertimos la columna 'promedio_puntajes' a float si está como string
-              chunks_relevant["promedio_puntajes"] = chunks_relevant["promedio_puntajes"].astype(float)
+              chunks_relevant.loc[:, "promedio_puntajes"] = chunks_relevant["promedio_puntajes"].astype(float)
           
               # Ordenamos los resultados por la columna 'promedio_puntajes' de mayor a menor
               chunks_relevant_sorted = chunks_relevant.sort_values(by="promedio_puntajes", ascending=False)

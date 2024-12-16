@@ -68,7 +68,7 @@ def multi_app():
         elif st.session_state["user_role"] == Roles.IA.value:  # IA
             app = option_menu(
                 menu_title='IA',
-                options=['Buscar Alumnos con IA', 'Cerrar Sesion'],
+                options=['Buscar Alumnos con IA','Actualizar Data Warehouse', 'Cerrar Sesion'],
                 icons=['house-fill', 'person-circle', 'info-circle-fill'],
                 menu_icon='chat-text-fill',
                 default_index=0,
@@ -91,7 +91,8 @@ def multi_app():
     elif app == "Homeprofesor":
         st.write("Homeprofesor")        
     elif app == "Buscar Rubricas":
-        mostrarrubricadecano.mostrarrubricadecano()
+        pass
+         #mostrarrubricadecano.mostrarrubricadecano()
     elif app == 'Evaluar Estudiantes':
         rubrica.evaluacion_rubrica()
     elif app == 'Ver Evaluaciones':
@@ -107,7 +108,9 @@ def multi_app():
     elif app == 'Cerrar Sesion':
         logout_button()
     elif app == 'Buscar Alumnos con IA':
-        chatbot.chatbot_ia()  
+        chatbot.chatbot_ia() 
+    elif app == 'Actualizar Data Warehouse':
+        chatbot.actualizaretl()  
 
         
       

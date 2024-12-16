@@ -4,15 +4,25 @@ import torch
 import pandas as pd
 import limpiadatos,etlbd
 
+import streamlit as st
+
+# Definir la función actualizaretl
+def actualizaretl():
+    def actualizandoetl():
+     with st.spinner('Extrayendo, transformando y cargando rúbricas...'):
+        etlbd.etlbd()  # Llamada a la función de ETL
+        limpiadatos.limpiaryguardarbdrubricas()  # Llamada a la función de limpieza y carga
+
+     st.success('¡Proceso completado con éxito! Las rúbricas han sido cargadas.')
+
+# Mostrar un botón en la interfaz de Streamlit
+    if st.button('Actualizar Rúbricas'):
+     actualizandoetl()  # Ejecutar la función al presionar el botón
 
 def chatbot_ia():
   #input("gato")
   # Usamos un spinner mientras realizamos una operación simulada
-  with st.spinner('Extrayendo, transformando y cargando rúbricas...'):
-      etlbd.etlbd()
-      limpiadatos.limpiaryguardarbdrubricas()
-       
-  st.success('¡Proceso completado con éxito! Las rúbricas han sido cargadas.') 
+  
   def reiniciarChat():
       """Función que reinicia el chat y borra el historial"""
       st.toast("CHAT INICIADO", icon='🤖')

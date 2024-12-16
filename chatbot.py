@@ -1,16 +1,25 @@
 import streamlit as st
 from utils2 import responderquery
 import torch
+import pandas as pd
+import limpiadatos,etlbd
 
 
 def chatbot_ia():
   #input("gato")
+  # Usamos un spinner mientras realizamos una operación simulada
+  with st.spinner('Extrayendo, transformando y cargando rúbricas...'):
+      etlbd.etlbd()
+      limpiadatos.limpiaryguardarbdrubricas()
+       
+  st.success('¡Proceso completado con éxito! Las rúbricas han sido cargadas.') 
   def reiniciarChat():
       """Función que reinicia el chat y borra el historial"""
       st.toast("CHAT INICIADO", icon='🤖')
       # Inicializamos el historial de chat
       if "messages" in st.session_state:
           st.session_state.messages = []
+     
   
   
   

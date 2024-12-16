@@ -39,7 +39,18 @@ def responderquery(query):
               #invertimos el valor de los indices, ya que argsort los hace de menor a mayor, recuperamos asi los 5 mayores
               top_k_indices = similarities.argsort()[-top_k:][::-1]
               chunks_relevant=chunks_df.iloc[top_k_indices]
-              return chunks_relevant
+
+                # Convertimos la columna 'promedio_puntajes' a float si está como string
+              chunks_relevant["promedio_puntajes"] = chunks_relevant["promedio_puntajes"].astype(float)
+          
+              # Ordenamos los resultados por la columna 'promedio_puntajes' de mayor a menor
+              chunks_relevant_sorted = chunks_relevant.sort_values(by="promedio_puntajes", ascending=False)
+          
+              # Filtramos los primeros 100 (o menos si no hay suficientes)
+              top_100_relevant = chunks_relevant_sorted.head(10)
+             # input(chunks_relevant_sorted["promedio_puntajes"])
+          
+              return top_100_relevant
     """
     input("esto es el query nuevo inicio")
     print(querynuevo)
@@ -47,6 +58,9 @@ def responderquery(query):
     print(query)
     input("esto es el historial ")
     """
+    def sacartop5porpuntaje(relevant_chunks):
+          print("a")
+
     def generar_respuesta(query,relevant_chunks):
         context="/n".join(relevant_chunks["chunks"].tolist())
      
